@@ -3,12 +3,12 @@ from djitellopy import tello
 import numpy as np
 import cv2
 import time
+me=''
+#me = tello.Tello()
+#me.connect()
+#print(me.get_battery())
 
-me = tello.Tello()
-me.connect()
-print(me.get_battery())
-
-me.streamon()
+#me.streamon()
 #me.takeoff()
 #me.send_rc_control(0, 0, 25, 0)
 #time.sleep(3.5)
@@ -21,6 +21,7 @@ pid = [0.4, 0.4, 0]
 pError = 0
 
 def getContours(img,imgContour):
+    myObjectListData = []
     myObjectListC = []
     myObjectListArea = []
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -39,13 +40,12 @@ def getContours(img,imgContour):
             
             myObjectListC.append([cx, cy])
             myObjectListArea.append(area)
+            myObjectListData.append([x,y,w,h,approx])
     if len(myObjectListArea) > 0:
         i = myObjectListArea.index(max(myObjectListArea))
         cv2.circle(imgContour, myObjectListC[i], 5, (0, 255, 0), cv2.FILLED)
-        return imgContour, [myObjectListC[i], myObjectListArea[i]]
-    else:
-        return imgContour,[[0,0],0]
-        '''cv2.rectangle(imgContour, (x , y ), (x + w , y + h ), (0, 255, 0), 5)
+        x,y,w,h,approx=myObjectListData[i]
+        cv2.rectangle(imgContour, (x , y ), (x + w , y + h ), (0, 255, 0), 5)
 
         cv2.putText(imgContour, "Points: " + str(len(approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
                     (0, 255, 0), 2)
@@ -71,7 +71,11 @@ def getContours(img,imgContour):
             cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),int(frameHeight/2)+deadZone),(int(frameWidth/2+deadZone),frameHeight),(0,0,255),cv2.FILLED)
 
         cv2.line(imgContour, (int(frameWidth/2),int(frameHeight/2)), (cx,cy),
-                (0, 0, 255), 3)'''
+                (0, 0, 255), 3)
+        return imgContour, [myObjectListC[i], myObjectListArea[i]]
+    else:
+        return imgContour,[[0,0],0]
+        
     
 
 def findFace(img):
@@ -126,13 +130,13 @@ def trackObj(me, info, w, pid, pError):
     return error
 
 
-#cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 while True:
-    #_, img = cap.read()
-    #img = cv2.resize(img, (w, h))
-    frame_read = me.get_frame_read()
-    myFrame = frame_read.frame
-    img = cv2.resize(myFrame, (w, h))
+    _, img = cap.read()
+    img = cv2.resize(img, (w, h))
+    #frame_read = me.get_frame_read()
+    #myFrame = frame_read.frame
+    #img = cv2.resize(myFrame, (w, h))
     imgContour = img.copy()
     imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
     lower = np.array([137,80,180])#h_min,s_min,v_min
