@@ -3,16 +3,19 @@ from djitellopy import tello
 import numpy as np
 import cv2
 import time
+debug=True
+if not debug:
+    me = tello.Tello()
+    me.connect()
+    print(me.get_battery())
 
-me = tello.Tello()
-me.connect()
-print(me.get_battery())
-
-me.streamon()
-me.takeoff()
-me.send_rc_control(0, 0, 25, 0)
-time.sleep(3.5)
-me.send_rc_control(0, 0, 0, 0)
+    me.streamon()
+    me.takeoff()
+    me.send_rc_control(0, 0, 25, 0)
+    time.sleep(3.5)
+    me.send_rc_control(0, 0, 0, 0)
+else:
+    me=""
 
 w, h = 360, 240
 frameWidth,frameHeight,deadZone=w,h,50
@@ -127,16 +130,19 @@ def trackObj(me, info, w, pid, pError):
     print(speed, fb)
     cv2.putText(imgContour, "Speed: "+str(speed)+" fb: "+str(fb), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
     #time.sleep(0.5)
-    me.send_rc_control(0, fb, 0, speed)
+    if not debug:
+        me.send_rc_control(0, fb, 0, speed)
     return error
 
-
-#cap = cv2.VideoCapture(0)
+if debug:
+    cap = cv2.VideoCapture(0)
 while True:
-    #_, img = cap.read()
-    #img = cv2.resize(img, (w, h))
-    myFrame = me.get_frame_read().frame
-    img = cv2.resize(myFrame, (w, h))
+    if debug:
+        _, img = cap.read()
+        img = cv2.resize(img, (w, h))
+    else:
+        myFrame = me.get_frame_read().frame
+        img = cv2.resize(myFrame, (w, h))
     imgContour = img.copy()
     imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
     lower = np.array([137,80,180])#h_min,s_min,v_min
@@ -157,5 +163,6 @@ while True:
     print("Area", info[1], "Center", info[1])
     cv2.imshow("output", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        me.land()
+        if not debug:
+            me.land()
         break
