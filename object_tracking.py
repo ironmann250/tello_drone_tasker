@@ -15,8 +15,8 @@ me=''
 #me.send_rc_control(0, 0, 0, 0)
 
 w, h = 360, 240
-frameWidth,frameHeight,deadZone=w,h,100
-fbRange = [1000,10000]#[6200, 6800]
+frameWidth,frameHeight,deadZone=w,h,50
+fbRange = [2500,3000]#[6200, 6800]
 pid = [0.4, 0.4, 0]
 pError = 0
 
@@ -58,17 +58,17 @@ def getContours(img,imgContour):
         cy = int(y + (h / 2))
 
         if (cx <int(frameWidth/2)-deadZone):
-            cv2.putText(imgContour, " GO LEFT " , (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
-            cv2.rectangle(imgContour,(0,int(frameHeight/2-deadZone)),(int(frameWidth/2)-deadZone,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+            cv2.putText(imgContour, " GO LEFT " , (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
+            #cv2.rectangle(imgContour,(0,int(frameHeight/2-deadZone)),(int(frameWidth/2)-deadZone,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
         elif (cx > int(frameWidth / 2) + deadZone):
-            cv2.putText(imgContour, " GO RIGHT ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
-            cv2.rectangle(imgContour,(int(frameWidth/2+deadZone),int(frameHeight/2-deadZone)),(frameWidth,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+            cv2.putText(imgContour, " GO RIGHT ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
+            #cv2.rectangle(imgContour,(int(frameWidth/2+deadZone),int(frameHeight/2-deadZone)),(frameWidth,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
         elif (cy < int(frameHeight / 2) - deadZone):
-            cv2.putText(imgContour, " GO UP ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
-            cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),0),(int(frameWidth/2+deadZone),int(frameHeight/2)-deadZone),(0,0,255),cv2.FILLED)
+            cv2.putText(imgContour, " GO UP ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
+            #cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),0),(int(frameWidth/2+deadZone),int(frameHeight/2)-deadZone),(0,0,255),cv2.FILLED)
         elif (cy > int(frameHeight / 2) + deadZone):
-            cv2.putText(imgContour, " GO DOWN ", (20, 50), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 3)
-            cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),int(frameHeight/2)+deadZone),(int(frameWidth/2+deadZone),frameHeight),(0,0,255),cv2.FILLED)
+            cv2.putText(imgContour, " GO DOWN ", (20, 50), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
+            #cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),int(frameHeight/2)+deadZone),(int(frameWidth/2+deadZone),frameHeight),(0,0,255),cv2.FILLED)
 
         cv2.line(imgContour, (int(frameWidth/2),int(frameHeight/2)), (cx,cy),
                 (0, 0, 255), 3)
@@ -125,6 +125,7 @@ def trackObj(me, info, w, pid, pError):
         error = 0
 
     print(speed, fb)
+    cv2.putText(imgContour, "Speed: "+str(speed)+" fb: "+str(fb), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
     #time.sleep(0.5)
     #me.send_rc_control(0, fb, 0, speed)
     return error
