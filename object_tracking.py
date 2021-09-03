@@ -9,16 +9,70 @@ me.connect()
 print(me.get_battery())
 
 me.streamon()
-me.takeoff()
-me.send_rc_control(0, 0, 25, 0)
-time.sleep(3.5)
-me.send_rc_control(0, 0, 0, 0)
+#me.takeoff()
+#me.send_rc_control(0, 0, 25, 0)
+#time.sleep(3.5)
+#me.send_rc_control(0, 0, 0, 0)
 
 w, h = 360, 240
-fbRange = [6200, 6800]
+frameWidth,frameHeight,deadZone=w,h,100
+fbRange = [1000,10000]#[6200, 6800]
 pid = [0.4, 0.4, 0]
 pError = 0
 
+def getContours(img,imgContour):
+    myObjectListC = []
+    myObjectListArea = []
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        areaMin =0# cv2.getTrackbarPos("Area", "Parameters")
+        if area > areaMin:
+            cv2.drawContours(imgContour, cnt, -1, (255, 0, 255), 7)
+            peri = cv2.arcLength(cnt, True)
+            approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+            print(len(approx))
+            x , y , w, h = cv2.boundingRect(approx)
+            cx = x + w // 2
+            cy = y + h // 2
+            area = w * h
+            
+            myObjectListC.append([cx, cy])
+            myObjectListArea.append(area)
+    if len(myObjectListArea) > 0:
+        i = myObjectListArea.index(max(myObjectListArea))
+        cv2.circle(imgContour, myObjectListC[i], 5, (0, 255, 0), cv2.FILLED)
+        return imgContour, [myObjectListC[i], myObjectListArea[i]]
+    else:
+        return imgContour,[[0,0],0]
+        '''cv2.rectangle(imgContour, (x , y ), (x + w , y + h ), (0, 255, 0), 5)
+
+        cv2.putText(imgContour, "Points: " + str(len(approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
+                    (0, 255, 0), 2)
+        cv2.putText(imgContour, "Area: " + str(int(area)), (x + w + 20, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.7,
+                    (0, 255, 0), 2)
+        cv2.putText(imgContour, " " + str(int(x))+ " "+str(int(y)), (x - 20, y- 45), cv2.FONT_HERSHEY_COMPLEX, 0.7,
+                    (0, 255, 0), 2)
+
+        cx = int(x + (w / 2))
+        cy = int(y + (h / 2))
+
+        if (cx <int(frameWidth/2)-deadZone):
+            cv2.putText(imgContour, " GO LEFT " , (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
+            cv2.rectangle(imgContour,(0,int(frameHeight/2-deadZone)),(int(frameWidth/2)-deadZone,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+        elif (cx > int(frameWidth / 2) + deadZone):
+            cv2.putText(imgContour, " GO RIGHT ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
+            cv2.rectangle(imgContour,(int(frameWidth/2+deadZone),int(frameHeight/2-deadZone)),(frameWidth,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+        elif (cy < int(frameHeight / 2) - deadZone):
+            cv2.putText(imgContour, " GO UP ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 3)
+            cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),0),(int(frameWidth/2+deadZone),int(frameHeight/2)-deadZone),(0,0,255),cv2.FILLED)
+        elif (cy > int(frameHeight / 2) + deadZone):
+            cv2.putText(imgContour, " GO DOWN ", (20, 50), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 3)
+            cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),int(frameHeight/2)+deadZone),(int(frameWidth/2+deadZone),frameHeight),(0,0,255),cv2.FILLED)
+
+        cv2.line(imgContour, (int(frameWidth/2),int(frameHeight/2)), (cx,cy),
+                (0, 0, 255), 3)'''
+    
 
 def findFace(img):
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
@@ -45,7 +99,7 @@ def findFace(img):
         return img, [[0, 0], 0]
 
 
-def trackFace(me, info, w, pid, pError):
+def trackObj(me, info, w, pid, pError):
     area = info[1]
     x, y = info[0]
     fb = 0
@@ -67,20 +121,37 @@ def trackFace(me, info, w, pid, pError):
         error = 0
 
     print(speed, fb)
-
-    me.send_rc_control(0, fb, 0, speed)
+    #time.sleep(0.5)
+    #me.send_rc_control(0, fb, 0, speed)
     return error
 
 
 #cap = cv2.VideoCapture(0)
 while True:
     #_, img = cap.read()
-    img = me.get_frame_read().frame
-    img = cv2.resize(img, (w, h))
-    img, info = findFace(img)
-    pError = trackFace(me, info, w, pid, pError)
+    #img = cv2.resize(img, (w, h))
+    frame_read = me.get_frame_read()
+    myFrame = frame_read.frame
+    img = cv2.resize(myFrame, (w, h))
+    imgContour = img.copy()
+    imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
+    lower = np.array([137,80,180])#h_min,s_min,v_min
+    upper = np.array([179,255,255])#h_max,s_max,v_max
+    mask = cv2.inRange(imgHsv,lower,upper)
+    result = cv2.bitwise_and(img,img, mask = mask)
+    mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+ 
+    imgBlur = cv2.GaussianBlur(result, (7, 7), 1)
+    imgGray = cv2.cvtColor(imgBlur, cv2.COLOR_BGR2GRAY)
+    threshold1 = 101
+    threshold2 = 0
+    imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
+    kernel = np.ones((5, 5))
+    imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
+    img, info = getContours(imgDil, imgContour)
+    pError = trackObj(me, info, w, pid, pError)
     print("Area", info[1], "Center", info[1])
     cv2.imshow("output", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        me.land()
+        #me.land()
         break
