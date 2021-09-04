@@ -1,4 +1,3 @@
-
 from djitellopy import tello
 import numpy as np
 import cv2
@@ -18,6 +17,21 @@ w, h = 360, 240
 fbRange = [6200, 6800]
 pid = [0.4, 0.4, 0]
 pError = 0
+
+
+def speedPID(sp, pv, pError):
+    """
+    determine speed as target is approached
+    :param sp:  set point
+    :param pv: processed value
+    :return: speed
+    """
+    error = pv - sp
+    speed = pid[0] * error + pid[1] * (error - pError)
+    speed = int(np.clip(speed, -100, 100))
+    pError = error
+
+    return speed
 
 
 def findFace(img):
@@ -50,9 +64,7 @@ def trackFace(me, info, w, pid, pError):
     x, y = info[0]
     fb = 0
 
-    error = x - w // 2
-    speed = pid[0] * error + pid[1] * (error - pError)
-    speed = int(np.clip(speed, -100, 100))
+    speed = speedPID(x, w // 2, pError)
 
     if area > fbRange[0] and area < fbRange[1]:
         fb = 0
@@ -72,9 +84,9 @@ def trackFace(me, info, w, pid, pError):
     return error
 
 
-#cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
 while True:
-    #_, img = cap.read()
+    # _, img = cap.read()
     img = me.get_frame_read().frame
     img = cv2.resize(img, (w, h))
     img, info = findFace(img)
