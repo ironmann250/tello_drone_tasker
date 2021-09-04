@@ -7,7 +7,7 @@ debug=True
 if not debug:
     me = tello.Tello()
     me.connect()
-    print(me.get_battery())
+    #print(me.get_battery())
 
     me.streamon()
     me.takeoff()
@@ -35,7 +35,7 @@ def getContours(img,imgContour):
             cv2.drawContours(imgContour, cnt, -1, (255, 0, 255), 7)
             peri = cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
-            print(len(approx))
+            #print(len(approx))
             x , y , w, h = cv2.boundingRect(approx)
             cx = x + w // 2
             cy = y + h // 2
@@ -62,19 +62,19 @@ def getContours(img,imgContour):
 
         if (cx <int(frameWidth/2)-deadZone):
             cv2.putText(imgContour, " GO LEFT " , (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
-            #cv2.rectangle(imgContour,(0,int(frameHeight/2-deadZone)),(int(frameWidth/2)-deadZone,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+           
         elif (cx > int(frameWidth / 2) + deadZone):
             cv2.putText(imgContour, " GO RIGHT ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
-            #cv2.rectangle(imgContour,(int(frameWidth/2+deadZone),int(frameHeight/2-deadZone)),(frameWidth,int(frameHeight/2)+deadZone),(0,0,255),cv2.FILLED)
+         
         elif (cy < int(frameHeight / 2) - deadZone):
             cv2.putText(imgContour, " GO UP ", (20, 50), cv2.FONT_HERSHEY_COMPLEX,1,(0, 0, 255), 1)
-            #cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),0),(int(frameWidth/2+deadZone),int(frameHeight/2)-deadZone),(0,0,255),cv2.FILLED)
+           
         elif (cy > int(frameHeight / 2) + deadZone):
             cv2.putText(imgContour, " GO DOWN ", (20, 50), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
-            #cv2.rectangle(imgContour,(int(frameWidth/2-deadZone),int(frameHeight/2)+deadZone),(int(frameWidth/2+deadZone),frameHeight),(0,0,255),cv2.FILLED)
-
+        
         cv2.line(imgContour, (int(frameWidth/2),int(frameHeight/2)), (cx,cy),
                 (0, 0, 255), 3)
+
         return imgContour, [myObjectListC[i], myObjectListArea[i]]
     else:
         return imgContour,[[0,0],0]
@@ -86,7 +86,7 @@ def findFace(img):
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(imgGray)
 
-    print(faces)
+    #print(faces)
 
     myFaceListC = []
     myFaceListArea = []
@@ -127,7 +127,7 @@ def trackObj(me, info, w, pid, pError):
         speed = 0
         error = 0
 
-    print(speed, fb)
+    #print(speed, fb)
     cv2.putText(imgContour, "Speed: "+str(speed)+" fb: "+str(fb), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
     #time.sleep(0.5)
     if not debug:
@@ -160,7 +160,7 @@ while True:
     imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
     img, info = getContours(imgDil, imgContour)
     pError = trackObj(me, info, w, pid, pError)
-    print("Area", info[1], "Center", info[1])
+    #print("Area", info[1], "Center", info[1])
     cv2.imshow("output", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         if not debug:
