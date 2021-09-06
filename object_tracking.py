@@ -4,15 +4,17 @@ import numpy as np
 import cv2
 import time
 debug=True
+testTime=0
 if not debug:
     me = tello.Tello()
     me.connect()
-    #print(me.get_battery())
+    print(me.get_battery())
 
     me.streamon()
+    time.sleep(0.5)
     me.takeoff()
     me.send_rc_control(0, 0, 25, 0)
-    time.sleep(3.5)
+    time.sleep(1)
     me.send_rc_control(0, 0, 0, 0)
 else:
     me=""
@@ -20,8 +22,10 @@ else:
 w, h = 360, 240
 frameWidth,frameHeight,deadZone=w,h,50
 fbRange = [2500,3000]#[6200, 6800]
-pid = [0.4, 0.4, 0]
-pError = 0
+pidSpeed = [0.4, 0.4, 0]
+pErrorSpeed = 0
+pidUd = [0.4, 0.4, 0]
+pErrorUd = 0
 
 def getContours(img,imgContour):
     myObjectListData = []
@@ -106,15 +110,18 @@ def findFace(img):
         return img, [[0, 0], 0]
 
 
-def trackObj(me, info, w, pid, pError):
+def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
     area = info[1]
     x, y = info[0]
     fb = 0
 
-    error = x - w // 2
-    speed = pid[0] * error + pid[1] * (error - pError)
-    speed = int(np.clip(speed, -100, 100))
-
+    errorSpeed = x - w // 2
+    errorUd = y - h // 2
+    speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
+    speed = int(np.clip(speed, -10, 10))
+    ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
+    ud = int(np.clip(ud, -20, 20))
+    
     if area > fbRange[0] and area < fbRange[1]:
         fb = 0
 
@@ -122,21 +129,32 @@ def trackObj(me, info, w, pid, pError):
         fb = -20
     elif area < fbRange[0] and area > 0:
         fb = 20
-
+    
     if x == 0:
         speed = 0
+        fb=0
+        ud=0
         error = 0
 
     #print(speed, fb)
-    cv2.putText(imgContour, "Speed: "+str(speed)+" fb: "+str(fb), (20, 200), cv2.FONT_HERSHEY_COMPLEX, 1,(0, 0, 255), 1)
+    cv2.putText(imgContour, "LR: "+str(speed)+" FB: "+str(fb)+" UD: "+str(ud),( 5, 200), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
+    cv2.putText(imgContour, "err LR: "+str(errorSpeed)+"err UD: "+str(errorUd),( 5, 220), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
     #time.sleep(0.5)
     if not debug:
-        me.send_rc_control(0, fb, 0, speed)
-    return error
+        me.send_rc_control(speed, 0, -ud, 0)
+        #pass
+    return errorSpeed,errorUd
 
 if debug:
     cap = cv2.VideoCapture(0)
+
+now=time.time()
+
 while True:
+    if testTime !=0 and (time.time()-now >=testTime):
+        if not debug:
+            me.land()
+        break
     if debug:
         _, img = cap.read()
         img = cv2.resize(img, (w, h))
@@ -145,8 +163,10 @@ while True:
         img = cv2.resize(myFrame, (w, h))
     imgContour = img.copy()
     imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
-    lower = np.array([137,80,180])#h_min,s_min,v_min
-    upper = np.array([179,255,255])#h_max,s_max,v_max
+    #lower = np.array([137,80,180])#h_min,s_min,v_min
+    #upper = np.array([179,255,255])#h_max,s_max,v_max
+    lower = np.array([36,127,126])#h_min,s_min,v_min
+    upper = np.array([108,255,255])#h_max,s_max,v_max
     mask = cv2.inRange(imgHsv,lower,upper)
     result = cv2.bitwise_and(img,img, mask = mask)
     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
@@ -158,8 +178,8 @@ while True:
     imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
     kernel = np.ones((5, 5))
     imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
-    img, info = getContours(imgDil, imgContour)
-    pError = trackObj(me, info, w, pid, pError)
+    img, info = getContours(imgCanny , imgContour)
+    pErrorSpeed,pErrorFb = trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd)
     #print("Area", info[1], "Center", info[1])
     cv2.imshow("output", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
