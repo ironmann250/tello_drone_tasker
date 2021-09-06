@@ -4,12 +4,12 @@ import numpy as np
 import cv2
 import time
 
-kp.init()  # initialize keyboard to take keyboard commands
+# kp.init()  # initialize keyboard to take keyboard commands
 
 pid = [0.6, 0.4, 0]
 pError = 0
 
-flightHeight = 80  # fly at 80cm
+flightHeight = 20  # fly at this level above the ground
 
 # initialize tello
 me = tello.Tello()
@@ -73,16 +73,19 @@ def speedPID(sp, pv, pError):
     return speed, pError
 
 
-# move to 80cm above the ground
+# move to set height above the ground
+me.send_rc_control(0, 0, flightHeight-me.get_height(), 0)
 while True:
-    #vals = getKeyBoardInput()  # just in case need to emergency land, press q
-    speed, pError = speedPID(flightHeight, me.get_height(), pError)
-    me.send_rc_control(0, 0, speed, 0)
-
-    absError = abs(me.get_height() - flightHeight)
-    if absError > -1 and absError < 5:
+    print(me.get_height())
+    if me.get_height() == flightHeight:
+        me.send_rc_control(0, 0, 0, 0)
         break
-    print("height is: {}, absError {}".format(me.get_height(), absError))
-me.send_rc_control(0, 0, 0, 0)
-me.land()
+print("height is: {}".format(me.get_height()))
+
+while True:
+    img = me.get_frame_read().frame
+    cv2.imshow("IMG", img)
+    cv2.waitKey(1)
+
+
 
