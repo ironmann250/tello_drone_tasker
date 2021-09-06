@@ -1,4 +1,3 @@
-
 from djitellopy import tello
 import numpy as np
 import cv2
@@ -87,6 +86,21 @@ def getContours(img,imgContour):
         return imgContour,[[0,0],0]
         
     
+
+def speedPID(sp, pv, pError):
+    """
+    determine speed as target is approached
+    :param sp:  set point
+    :param pv: processed value
+    :return: speed
+    """
+    error = pv - sp
+    speed = pid[0] * error + pid[1] * (error - pError)
+    speed = int(np.clip(speed, -100, 100))
+    pError = error
+
+    return speed
+
 
 def findFace(img):
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
