@@ -15,7 +15,7 @@ sensors = 3  # sensors in the image
 
 thresholdPixels = 0.2  # 20% threshold pixels
 
-senstivity = 3  # sensitivity of motion change
+senstivity = 2  # sensitivity of motion change
 
 turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
@@ -26,12 +26,15 @@ if DRONECAM:
     me = tello.Tello()
     me.connect()
     time.sleep(1)
-    print(me.get_battery())
     me.streamon_bottom()
+    time.sleep(3)
+    print(me.get_battery())
 else:
     cap = cv2.VideoCapture(0)
 
+me.send_rc_control(0, 0, 0, 0)
 me.takeoff()
+me.send_rc_control(0, 0, 0, 0)
 
 
 # move to set height above the ground
@@ -109,9 +112,10 @@ def sendCommands(senOut, cx):
     """
     # Translation
     lr = (cx - w // 2) // senstivity
-    lr = int(np.clip(lr, -10, 10))
+    print(lr)
+    lr = int(np.clip(lr, -100, 100))
 
-    if lr < 2 and lr > -2:
+    if lr < 20 and lr > -20:
         lr = 0
 
     # Rotation
@@ -141,6 +145,8 @@ def followLine(tello):
     print("line follow")
     img = ""
     imgCount = 0
+    gotStream = False
+
     while True:
         print("while loop")
         if kp.getKey("q"):
@@ -148,29 +154,32 @@ def followLine(tello):
 
         if DRONECAM:
             img = tello.get_frame_read().frame
-            cv2.imshow("output-p", img)
-            rows, cols, channel = img.shape
-            M = cv2.getRotationMatrix2D((cols / 2, rows / 2), -90, 1)
-            img = cv2.warpAffine(img, M, (cols, rows))
+
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
             cv2.imshow("output-0", img)
             print("drone cam")
+            gotStream = True
         else:
             _, img = cap.read()
             print("web cam")
 
-        img = cv2.resize(img, (w, h))
+        if gotStream:
+            img = cv2.resize(img, (w, h))
 
-        # img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
-        imgThres = thresholding(img)
-        cx = getContours(imgThres, img)  ## image translation
-        senOut = getSensorOutput(imgThres, sensors)
-        # sendCommands(senOut, cx)
-        cv2.imshow("output", img)
-        # cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
-        # imgCount = imgCount + 1
-        cv2.imshow("Thres", imgThres)
-        # cv2.imshow("Cut", img_cut)
-        cv2.waitKey(1)
+            # img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
+            imgThres = thresholding(img)
+            cx = getContours(imgThres, img)  ## image translation
+            senOut = getSensorOutput(imgThres, sensors)
+            sendCommands(senOut, cx)
+            cv2.imshow("output", img)
+            cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
+            imgCount = imgCount + 1
+            cv2.imshow("Thres", imgThres)
+            # cv2.imshow("Cut", img_cut)
+            cv2.waitKey(1)
+        else:
+            print("waiting stream...")
 
 
 if __name__ == '__main__':
