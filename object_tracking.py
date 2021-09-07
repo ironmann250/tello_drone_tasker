@@ -2,8 +2,8 @@ from djitellopy import tello
 import numpy as np
 import cv2
 import time
-debug=True
-testTime=0
+debug=False
+testTime=30
 waitTime=0.5
 change=0
 timeWaited=0
@@ -11,7 +11,6 @@ if not debug:
     me = tello.Tello()
     me.connect()
     print(me.get_battery())
-
     me.streamon()
     time.sleep(0.5)
     me.takeoff()
@@ -20,10 +19,10 @@ if not debug:
     me.send_rc_control(0, 0, 0, 0)
 else:
     me=""
-multiplier=2
+multiplier=1
 w, h = 360*multiplier, 240*multiplier
 frameWidth,frameHeight,deadZone=w,h,50
-fbRange = [2500*(multiplier*multiplier),3000*(multiplier*multiplier)]#[6200, 6800]
+fbRange = [2000*(multiplier*multiplier),5000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
@@ -191,10 +190,10 @@ while True:
     imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
     #lower = np.array([137,80,180])#h_min,s_min,v_min
     #upper = np.array([179,255,255])#h_max,s_max,v_max
-    #lower = np.array([36,127,126])#blue indoor h_min,s_min,v_min
-    #upper = np.array([108,255,255])#blue indoor h_max,s_max,v_max
-    lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
-    upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
+    lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
+    upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
+    #lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
+    #upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
     
     mask = cv2.inRange(imgHsv,lower,upper)
     result = cv2.bitwise_and(img,img, mask = mask)

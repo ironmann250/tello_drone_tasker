@@ -1,11 +1,31 @@
+from djitellopy import Tello
 import cv2
 import numpy as np
  
+
+ 
+# CONNECT TO TELLO
+me = Tello()
+me.connect()
+me.for_back_velocity = 0
+me.left_right_velocity = 0
+me.up_down_velocity = 0
+me.yaw_velocity = 0
+me.speed = 0
+ 
+ 
+ 
+print(me.get_battery())
+ 
+
+me.streamon()
+ 
 frameWidth = 640
 frameHeight = 480
-cap = cv2.VideoCapture(0)
-cap.set(3, frameWidth)
-cap.set(4, frameHeight)
+#cap = cv2.VideoCapture(0)
+#cap.set(3, frameWidth)
+#cap.set(4, frameHeight)
+
  
 deadZone=100
 global imgContour
@@ -111,7 +131,8 @@ def display(img):
  
 while True:
  
-    _, img = cap.read()
+    #_, img = cap.read()
+    img = cv2.resize(me.get_frame_read().frame, (frameWidth, frameHeight))
     imgContour = img.copy()
     imgHsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
  
