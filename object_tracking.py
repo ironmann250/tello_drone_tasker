@@ -2,8 +2,8 @@ from djitellopy import tello
 import numpy as np
 import cv2
 import time
-debug=False
-testTime=60
+debug=True
+testTime=0
 waitTime=0.5
 change=0
 timeWaited=0
@@ -207,7 +207,7 @@ while True:
     imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
     kernel = np.ones((5, 5))
     imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
-    img, info = getContours(imgCanny , imgContour)
+    img, info = getContours(imgDil , imgContour)
     pErrorSpeed,pErrorUd = trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd)
     #print("Area", info[1], "Center", info[1])
     cv2.imshow("output", img)
