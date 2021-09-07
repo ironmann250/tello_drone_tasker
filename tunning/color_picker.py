@@ -18,13 +18,12 @@ if DRONECAM:
 
     print(me.get_battery())
 
-    me.streamon()
+    me.streamon_bottom()
 else:
     cap = cv2.VideoCapture(0)
 
 def empty(a):
     pass
-
 
 cv2.namedWindow("HSV")
 
@@ -51,7 +50,7 @@ while True:
     else:
         _, img = cap.read()
 
-    img = cv2.resize(img, (frameWidth, frameHeight))
+    #img = cv2.resize(img, (frameWidth, frameHeight))
 
     #img = cv2.flip(img, 0)
 

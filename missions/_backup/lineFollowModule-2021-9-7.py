@@ -8,8 +8,8 @@ kp.init()
 
 DRONECAM = True  # using drone or computer cam
 
-w, h = 321, 240  # width and height of video frame
-hsvVals = [0, 0, 255, 0, 0, 255]  # hsv range values for yellow line
+w, h = 360, 240  # width and height of video frame
+hsvVals = [21, 165, 77, 179, 255, 191]  # hsv range values for yellow line
 
 sensors = 3  # sensors in the image
 
@@ -27,7 +27,7 @@ if DRONECAM:
     me.connect()
     time.sleep(1)
     print(me.get_battery())
-    me.streamon_bottom()
+    me.streamon()
 else:
     cap = cv2.VideoCapture(0)
 
@@ -148,11 +148,6 @@ def followLine(tello):
 
         if DRONECAM:
             img = tello.get_frame_read().frame
-            cv2.imshow("output-p", img)
-            rows, cols, channel = img.shape
-            M = cv2.getRotationMatrix2D((cols / 2, rows / 2), -90, 1)
-            img = cv2.warpAffine(img, M, (cols, rows))
-            cv2.imshow("output-0", img)
             print("drone cam")
         else:
             _, img = cap.read()
@@ -160,21 +155,23 @@ def followLine(tello):
 
         img = cv2.resize(img, (w, h))
 
-        # img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
+        img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
         imgThres = thresholding(img)
         cx = getContours(imgThres, img)  ## image translation
         senOut = getSensorOutput(imgThres, sensors)
-        # sendCommands(senOut, cx)
+        sendCommands(senOut, cx)
         cv2.imshow("output", img)
-        # cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
-        # imgCount = imgCount + 1
+        cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
+        imgCount = imgCount + 1
         cv2.imshow("Thres", imgThres)
-        # cv2.imshow("Cut", img_cut)
+        cv2.imshow("Cut", img_cut)
         cv2.waitKey(1)
 
 
+if not DRONECAM:
+    cap.release()
+
+cv2.destroyAllWindows()
+
 if __name__ == '__main__':
     followLine(me)
-    if not DRONECAM:
-        cap.release()
-    cv2.destroyAllWindows()
