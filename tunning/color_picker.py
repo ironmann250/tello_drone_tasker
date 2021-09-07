@@ -4,12 +4,11 @@ import cv2
 
 import numpy as np
 
-DRONECAM = False  # using drone or computer cam
+DRONECAM = True  # using drone or computer cam
 
 frameWidth = 480
 
 frameHeight = 360
-
 
 me = ""
 if DRONECAM:
