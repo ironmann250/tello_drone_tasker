@@ -9,7 +9,7 @@ tasks={
 	'gps_waypoint':gps_waypoint,
 	'manual_control':manual_control,
 	'dummy_task':dummy_task,
-}
+       }
 
 while robot.active:
 	print (robot.on)
