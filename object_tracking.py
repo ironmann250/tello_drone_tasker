@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import time
 debug=False
-testTime=30
+testTime=45
 waitTime=0.5
 change=0
 timeWaited=0
