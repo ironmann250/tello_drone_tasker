@@ -3,3 +3,6 @@ missions/image_feed/
 tunning/model/colorization_deploy_v2.prototxt
 tunning/model/colorization_release_v2.caffemodel
 tunning/model/pts_in_hull.npy
+missions/model/colorization_deploy_v2.prototxt
+missions/model/colorization_release_v2.caffemodel
+missions/model/pts_in_hull.npy
