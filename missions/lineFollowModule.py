@@ -16,7 +16,7 @@ if FRONTCAM:
 else:
     w, h = 321, 240  # width and height of video frame
 
-hsvVals = [0, 36, 179, 81, 255, 255]  # hsv range values for yellow line
+hsvVals = [26, 61, 137, 255, 255, 255]  # hsv range values for yellow line
 thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white line
 
 sensors = 3  # sensors in the image
@@ -167,6 +167,9 @@ def sendCommands(senOut, cx):
         me.send_rc_control(curve, fspeed, 0, lr)
 
 
+count_frames = 0 # count number of frames that have passed
+
+
 def followLine(tello):
     print("line follow")
     img = ""
@@ -204,15 +207,20 @@ def followLine(tello):
 
             cx = getContours(imgThres, img)  # image translation
 
-            if cx == 0:  # if no contour found, reached end of line
-                print("Reached end of line")
-                me.send_rc_control(0, fspeed, 0, 0)
-                time.sleep(2)
-                me.land()
-                break
-
             senOut = getSensorOutput(imgThres, sensors)
             sendCommands(senOut, cx)
+
+            # if cx == 0:
+            #     count_frames = count_frames + 1
+            #     if count_frames == 20:  # if no contour found for this long, reached end of line
+            #         print("Reached end of line")
+            #         me.send_rc_control(0, fspeed, 0, 0)
+            #         time.sleep(2)
+            #         me.land()
+            #         break
+            # else:
+            #     count_frames = 0
+
             cv2.imshow("output", img)
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
             imgCount = imgCount + 1
