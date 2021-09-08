@@ -1,8 +1,9 @@
-from djitellopy import tello
-import keyPressModule as kp
-import numpy as np
 import cv2
-import time
+import numpy as np
+from djitellopy import tello
+
+import keyPressModule as kp
+import lineFollowModule as ff
 
 # kp.init()  # initialize keyboard to take keyboard commands
 
@@ -82,10 +83,12 @@ while True:
         break
 print("height is: {}".format(me.get_height()))
 
-while True:
-    img = me.get_frame_read().frame
-    cv2.imshow("IMG", img)
-    cv2.waitKey(1)
+# while True:
+#     img = me.get_frame_read().frame
+#     cv2.imshow("IMG", img)
+#     cv2.waitKey(1)
+
+ff.followLine(me)
 
 
 

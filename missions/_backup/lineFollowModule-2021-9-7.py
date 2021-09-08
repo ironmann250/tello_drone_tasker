@@ -2,11 +2,14 @@ from djitellopy import tello
 import cv2
 import numpy as np
 import time
+import keyPressModule as kp
+
+kp.init()
 
 DRONECAM = True  # using drone or computer cam
 
 w, h = 360, 240  # width and height of video frame
-hsvVals = [27, 105, 138, 179, 255, 255]  # hsv range values for yellow line
+hsvVals = [21, 165, 77, 179, 255, 191]  # hsv range values for yellow line
 
 sensors = 3  # sensors in the image
 
@@ -29,6 +32,17 @@ else:
     cap = cv2.VideoCapture(0)
 
 me.takeoff()
+
+
+# move to set height above the ground
+# flightHeight = 20  # fly at this level above the ground
+# me.send_rc_control(0, 0, flightHeight-me.get_height(), 0)
+# while True:
+#     print(me.get_height())
+#     if me.get_height() == flightHeight:
+#         me.send_rc_control(0, 0, 0, 0)
+#         break
+# print("height is: {}".format(me.get_height()))
 
 def thresholding(img):
     """
@@ -120,14 +134,18 @@ def sendCommands(senOut, cx):
         curve = turnWeights[2]
 
     if DRONECAM:
-        me.send_rc_control(lr, fspeed, 0, curve)
+        me.send_rc_control(curve, fspeed, 0, lr)
 
 
 def followLine(tello):
     print("line follow")
     img = ""
+    imgCount = 0
     while True:
         print("while loop")
+        if kp.getKey("q"):
+            me.land()
+
         if DRONECAM:
             img = tello.get_frame_read().frame
             print("drone cam")
@@ -136,12 +154,17 @@ def followLine(tello):
             print("web cam")
 
         img = cv2.resize(img, (w, h))
+
+        img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
         imgThres = thresholding(img)
         cx = getContours(imgThres, img)  ## image translation
         senOut = getSensorOutput(imgThres, sensors)
         sendCommands(senOut, cx)
         cv2.imshow("output", img)
+        cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
+        imgCount = imgCount + 1
         cv2.imshow("Thres", imgThres)
+        cv2.imshow("Cut", img_cut)
         cv2.waitKey(1)
 
 
