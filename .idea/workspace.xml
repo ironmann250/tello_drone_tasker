@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="626926f8-30f8-46bc-8dbc-4eccf363efa8" name="Default Changelist" comment="move to 20cm above the ground">
-      <change afterPath="$PROJECT_DIR$/scratch/cut_quater.py" afterDir="false" />
+    <list default="true" id="626926f8-30f8-46bc-8dbc-4eccf363efa8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/missions/imageRecolorModule.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tunning/image_recolor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/missions/lineFollowerModule.py" beforeDir="false" afterPath="$PROJECT_DIR$/missions/lineFollowModule.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/missions/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/missions/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/missions/lineFollowModule.py" beforeDir="false" afterPath="$PROJECT_DIR$/missions/lineFollowModule.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tunning/color_picker.py" beforeDir="false" afterPath="$PROJECT_DIR$/tunning/color_picker.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,40 +17,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/missions/main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2100">
-              <caret line="89" selection-start-line="89" selection-end-line="89" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/missions/keyPressModule.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="18" selection-start-line="18" selection-end-line="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/tello.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19175">
-              <caret line="774" column="27" selection-start-line="774" selection-start-column="27" selection-end-line="774" selection-end-column="27" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/missions/lineFollowModule.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="125">
-              <caret line="149" column="46" lean-forward="true" selection-start-line="149" selection-start-column="46" selection-end-line="149" selection-end-column="46" />
+            <state relative-caret-position="5075">
+              <caret line="203" column="40" selection-start-line="203" selection-start-column="40" selection-end-line="203" selection-end-column="40" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -58,11 +28,28 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/tunning/image_recolor.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="150">
+              <caret line="6" column="91" selection-start-line="6" selection-start-column="91" selection-end-line="6" selection-end-column="91" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/missions/imageRecolorModule.py">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/keyboard_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1000">
-              <caret line="42" column="11" selection-start-line="42" selection-end-line="42" selection-end-column="32" />
+            <state relative-caret-position="50">
+              <caret line="4" column="9" selection-start-line="4" selection-start-column="9" selection-end-line="4" selection-end-column="9" />
               <folding>
                 <element signature="e#0#27#0" expanded="true" />
               </folding>
@@ -71,10 +58,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tunning/color_picker.py">
+        <entry file="file://$PROJECT_DIR$/front_bottom_cam.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="16" column="16" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
+            <state relative-caret-position="425">
+              <caret line="20" column="14" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -83,24 +70,29 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scratch/cut_quater.py">
+        <entry file="file://$PROJECT_DIR$/tunning/color_picker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="250">
-              <caret line="11" column="27" selection-start-line="11" selection-start-column="27" selection-end-line="11" selection-end-column="27" />
+            <state relative-caret-position="2050">
+              <caret line="86" column="4" selection-start-line="86" selection-start-column="4" selection-end-line="86" selection-end-column="4" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
+                <element signature="e#0#28#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.PyCharmCE2019.1/system/python_stubs/-1263421352/numpy/core/_multiarray_umath.py">
+        <entry file="file://$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/enforce_types.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="293775">
-              <caret line="11751" column="4" selection-start-line="11751" selection-start-column="4" selection-end-line="11751" selection-end-column="4" />
+            <state relative-caret-position="1250">
+              <caret line="53" selection-start-line="53" selection-end-line="53" />
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/missions/_backup/lineFollowModule-2021-9-7.py">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -113,10 +105,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/missions/lineFollowerModule-2021-9-6.py">
+        <entry file="file://$PROJECT_DIR$/missions/_backup/lineFollowerModule-2021-9-6.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="2975">
-              <caret line="122" column="23" selection-start-line="122" selection-start-column="23" selection-end-line="122" selection-end-column="23" />
+              <caret line="122" column="48" selection-start-line="122" selection-start-column="48" selection-end-line="122" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -138,6 +130,13 @@
       <find>send_rc_control</find>
       <find>get_height</find>
       <find>height</find>
+      <find>send_cont</find>
+      <find>front</find>
+      <find>flip</find>
+      <find>takeoff</find>
+      <find>[0, 0, 0]</find>
+      <find>streamon</find>
+      <find>senstivity</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -156,13 +155,17 @@
         <option value="$PROJECT_DIR$/missions/lineFollowerModule.py" />
         <option value="$PROJECT_DIR$/missions/main.py" />
         <option value="$PROJECT_DIR$/scratch/cut_quater.py" />
+        <option value="$PROJECT_DIR$/front_bottom_cam.py" />
+        <option value="$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/tello.py" />
         <option value="$PROJECT_DIR$/tunning/color_picker.py" />
         <option value="$PROJECT_DIR$/missions/lineFollowModule.py" />
+        <option value="$PROJECT_DIR$/tunning/image_recolor.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="645" />
+    <option name="x" value="262" />
+    <option name="y" value="177" />
     <option name="width" value="666" />
     <option name="height" value="775" />
   </component>
@@ -186,17 +189,6 @@
             <path>
               <item name="tello_drone_tasker" type="b2602c69:ProjectViewProjectNode" />
               <item name="tello_drone_tasker" type="462c0819:PsiDirectoryNode" />
-              <item name="missions" type="462c0819:PsiDirectoryNode" />
-              <item name="image_feed" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tello_drone_tasker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tello_drone_tasker" type="462c0819:PsiDirectoryNode" />
-              <item name="scratch" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="tello_drone_tasker" type="b2602c69:ProjectViewProjectNode" />
-              <item name="tello_drone_tasker" type="462c0819:PsiDirectoryNode" />
               <item name="tunning" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -208,17 +200,19 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/missions" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/missions/_backup" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="F:\MBZIR competition 2021\tasks\tello_drone_tasker\missions" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\MBZIR competition 2021\tasks\tello_drone_tasker\missions\_backup" />
       <recent name="F:\MBZIR competition 2021\tasks\tello_drone_tasker" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\MBZIR competition 2021\tasks\tello_drone_tasker\missions\_backup" />
+      <recent name="F:\MBZIR competition 2021\tasks\tello_drone_tasker\missions" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -233,7 +227,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.lineFollowerModule">
+  <component name="RunManager" selected="Python.image_recolor">
     <configuration name="color_picker" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="tello-opencv" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -255,7 +249,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="cut_quater" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="downcamtest" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="tello-opencv" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -263,11 +257,53 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scratch" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scratch/cut_quater.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/downcamtest.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="front_bottom_cam" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="tello-opencv" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/front_bottom_cam.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="image_recolor" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="tello-opencv" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tunning" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tunning/image_recolor.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -297,55 +333,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="tello-opencv" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/missions" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/missions/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="object_tracking" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="tello-opencv" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/object_tracking.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.image_recolor" />
         <item itemvalue="Python.lineFollowerModule" />
         <item itemvalue="Python.color_picker" />
-        <item itemvalue="Python.cut_quater" />
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.object_tracking" />
+        <item itemvalue="Python.front_bottom_cam" />
+        <item itemvalue="Python.downcamtest" />
       </list>
     </recent_temporary>
   </component>
@@ -367,19 +361,26 @@
       <option name="project" value="LOCAL" />
       <updated>1630923440470</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="move to 20cm above the ground">
+      <created>1631019566960</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1631019566960</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1320" height="784" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26599064" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2652106" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.52307695" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3276923" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -393,12 +394,12 @@
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
     <layout-to-restore>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26599064" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2652106" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.30307692" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32923076" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -421,16 +422,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2100">
           <caret line="27" column="18" selection-start-line="27" selection-start-column="6" selection-end-line="27" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/basic_movements.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="8" selection-start-line="8" selection-end-line="8" selection-end-column="12" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -500,33 +491,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/tello.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19175">
-          <caret line="774" column="27" selection-start-line="774" selection-start-column="27" selection-end-line="774" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/keyboard_control.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1000">
-          <caret line="42" column="11" selection-start-line="42" selection-end-line="42" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#27#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tunning/color_picker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="16" column="16" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scratch/cut_quater.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="250">
@@ -544,6 +508,73 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/basic_movements.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="9" column="28" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/downcamtest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/tello.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="13025">
+          <caret line="528" selection-start-line="528" selection-end-line="528" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/keyboard_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="50">
+          <caret line="4" column="9" selection-start-line="4" selection-start-column="9" selection-end-line="4" selection-end-column="9" />
+          <folding>
+            <element signature="e#0#27#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/front_bottom_cam.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="20" column="14" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tunning/color_picker.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2050">
+          <caret line="86" column="4" selection-start-line="86" selection-start-column="4" selection-end-line="86" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Roaming/Python/Python36/site-packages/djitellopy/enforce_types.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1250">
+          <caret line="53" selection-start-line="53" selection-end-line="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/missions/_backup/lineFollowModule-2021-9-7.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python36/Lib/site-packages/numpy/lib/shape_base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30625">
@@ -551,19 +582,43 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/missions/lineFollowerModule-2021-9-6.py">
+    <entry file="file://$PROJECT_DIR$/missions/_backup/lineFollowerModule-2021-9-6.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2975">
-          <caret line="122" column="23" selection-start-line="122" selection-start-column="23" selection-end-line="122" selection-end-column="23" />
+          <caret line="122" column="48" selection-start-line="122" selection-start-column="48" selection-end-line="122" selection-end-column="48" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tunning/model/colorization_release_v2.caffemodel">
+      <provider selected="true" editor-type-id="LargeFileEditor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tunning/model/colorization_deploy_v2.prototxt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-525" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tunning/model/pts_in_hull.npy">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/missions/lineFollowModule.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="125">
-          <caret line="149" column="46" lean-forward="true" selection-start-line="149" selection-start-column="46" selection-end-line="149" selection-end-column="46" />
+        <state relative-caret-position="5075">
+          <caret line="203" column="40" selection-start-line="203" selection-start-column="40" selection-end-line="203" selection-end-column="40" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/missions/imageRecolorModule.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tunning/image_recolor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="6" column="91" selection-start-line="6" selection-start-column="91" selection-end-line="6" selection-end-column="91" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>

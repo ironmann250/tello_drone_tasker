@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 DRONECAM = True  # using drone or computer cam
+ISBW = True
 
 frameWidth = 480
 
@@ -22,16 +23,18 @@ if DRONECAM:
 else:
     cap = cv2.VideoCapture(0)
 
+
 def empty(a):
     pass
+
 
 cv2.namedWindow("HSV")
 
 cv2.resizeWindow("HSV", 640, 240)
 
-cv2.createTrackbar("HUE Min", "HSV", 0, 179, empty)
+cv2.createTrackbar("HUE Min", "HSV", 0, 255, empty)
 
-cv2.createTrackbar("HUE Max", "HSV", 179, 179, empty)
+cv2.createTrackbar("HUE Max", "HSV", 179, 255, empty)
 
 cv2.createTrackbar("SAT Min", "HSV", 0, 255, empty)
 
@@ -50,12 +53,10 @@ while True:
     else:
         _, img = cap.read()
 
-    #img = cv2.resize(img, (frameWidth, frameHeight))
+    # img = cv2.resize(img, (frameWidth, frameHeight))
 
-    #img = cv2.flip(img, 0)
+    # img = cv2.flip(img, 0)
     img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-
-    imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     h_min = cv2.getTrackbarPos("HUE Min", "HSV")
 
@@ -73,13 +74,19 @@ while True:
 
     upper = np.array([h_max, s_max, v_max])
 
-    mask = cv2.inRange(imgHsv, lower, upper)
+    if ISBW:  # black and white image
+        mask = cv2.inRange(img, lower, upper)
+        result = cv2.bitwise_and(img, img, mask=mask)
+    else:
+        imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    result = cv2.bitwise_and(img, img, mask=mask)
+        mask = cv2.inRange(imgHsv, lower, upper)
 
-    print(f'[{h_min},{s_min},{v_min},{h_max},{s_max},{v_max}]')
+        result = cv2.bitwise_and(img, img, mask=mask)
 
     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+
+    print(f'[{h_min},{s_min},{v_min},{h_max},{s_max},{v_max}]')
 
     hStack = np.hstack([img, mask, result])
 
