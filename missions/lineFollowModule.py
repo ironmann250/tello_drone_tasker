@@ -27,7 +27,7 @@ senstivity = 2  # sensitivity of motion change
 
 turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
-fspeed = 15  # forward speed
+fspeed = 20   # forward speed
 
 me = ""
 if DRONECAM:
