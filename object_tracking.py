@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import time
 debug=False
-testTime=30
+testTime=0
 waitTime=0.5
 change=0
 timeWaited=0
@@ -15,14 +15,14 @@ if not debug:
     time.sleep(0.5)
     me.takeoff()
     me.send_rc_control(0, 0, 25, 0)
-    time.sleep(1)
+    time.sleep(3)
     me.send_rc_control(0, 0, 0, 0)
 else:
     me=""
-multiplier=1
+multiplier=2
 w, h = 360*multiplier, 240*multiplier
 frameWidth,frameHeight,deadZone=w,h,50
-fbRange = [2000*(multiplier*multiplier),5000*(multiplier*multiplier)]#[6200, 6800]
+fbRange = [20000*(multiplier*multiplier),40000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
@@ -46,7 +46,7 @@ def getContours(img,imgContour):
             cy = y + h // 2
             area = w * h
             
-            myObjectListC.append([cx, cy])
+            myObjectListC.append((cx, cy))
             myObjectListArea.append(area)
             myObjectListData.append([x,y,w,h,approx])
     if len(myObjectListArea) > 0:
@@ -190,8 +190,10 @@ while True:
     imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
     #lower = np.array([137,80,180])#h_min,s_min,v_min
     #upper = np.array([179,255,255])#h_max,s_max,v_max
-    lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
-    upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
+    #lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
+    #upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
+    lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
+    upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
     #lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
     #upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
     

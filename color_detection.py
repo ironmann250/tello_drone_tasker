@@ -142,7 +142,8 @@ while True:
     s_max = cv2.getTrackbarPos("SAT Max", "HSV")
     v_min = cv2.getTrackbarPos("VALUE Min", "HSV")
     v_max = cv2.getTrackbarPos("VALUE Max", "HSV")
-    print(h_min)
+
+    print(f'[{h_min},{s_min},{v_min},{h_max},{s_max},{v_max}]')
  
     lower = np.array([h_min,s_min,v_min])
     upper = np.array([h_max,s_max,v_max])
