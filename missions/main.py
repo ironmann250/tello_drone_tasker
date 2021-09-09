@@ -1,94 +1,57 @@
-import cv2
-import numpy as np
 from djitellopy import tello
+import time
 
 import keyPressModule as kp
-import lineFollowModule as ff
 
-# kp.init()  # initialize keyboard to take keyboard commands
-
-pid = [0.6, 0.4, 0]
-pError = 0
-
-flightHeight = 20  # fly at this level above the ground
-
-# initialize tello
-me = tello.Tello()
-me.connect()
-print("battery level is {}".format(me.get_battery()))
-
-# start stream and take off
-me.streamon()
-me.takeoff()
+import line_follow_mission as fm
+import  object_tracking_mission as tm
+import  obstacle_avoidance_mission as am
 
 
-def getKeyBoardInput():
-    lr, fb, ud, yv = 0, 0, 0, 0
-    speed = 50
+def init():
 
-    if kp.getKey("LEFT"):
-        lr = -speed
-    elif kp.getKey("RIGHT"):
-        lr = speed
-    else:
-        lr = 0
+    kp.init()  # initialize pygame keypress module
+    
+    # initialize me drone
+    me = tello.Tello()
+    me.connect()
+    print("battery level is {}".format(me.get_battery()))
+    time.sleep(1)
 
-    if kp.getKey("UP"):
-        fb = speed
-    elif kp.getKey("DOWN"):
-        fb = -speed
-    else:
-        fb = 0
+    # start stream and take off
+    me.streamon_front()
+    time.sleep(3)
+    me.send_rc_control(0, 0, 0, 0)
+    me.takeoff()
+    time.sleep(5)
 
-    if kp.getKey("w"):
-        ud = speed
-    elif kp.getKey("s"):
-        ud = -speed
-    else:
-        ud = 0
-
-    if kp.getKey("a"):
-        yv = speed
-    elif kp.getKey("d"):
-        yv = -speed
-    else:
-        yv = 0
-
-    if kp.getKey("q"): me.land()
-    if kp.getKey("e"): me.takeoff()
-
-    return [lr, fb, ud, yv]
+    return me
 
 
-def speedPID(sp, pv, pError):
-    """
-    determine speed as target is approached
-    :param sp:  set point
-    :param pv: processed value
-    :return: speed
-    """
-    error = sp - pv
-    speed = pid[0] * error + pid[1] * (error - pError)
-    speed = int(np.clip(speed, -100, 100))
-    pError = error
-    return speed, pError
+if __name__ == '__main__':
 
+    me = init()
 
-# move to set height above the ground
-me.send_rc_control(0, 0, flightHeight-me.get_height(), 0)
-while True:
-    print(me.get_height())
-    if me.get_height() == flightHeight:
-        me.send_rc_control(0, 0, 0, 0)
-        break
-print("height is: {}".format(me.get_height()))
-
-# while True:
-#     img = me.get_frame_read().frame
-#     cv2.imshow("IMG", img)
-#     cv2.waitKey(1)
-
-ff.followLine(me)
-
-
-
+    missions = ["follow_line", "obstacle_avoidance", "object_tracking"]
+    for mission in missions:
+        if mission == "follow_line":
+            """
+            Execute line following mission
+            """
+            fm.init(me)  # init line follow mission
+            fm.followLine(me)  # start line following
+            fm.deinit()  # deinitialize line follow mission
+        elif mission == "obstacle_avoidance":
+            """
+            Execute obstacle avoidance mission
+            """
+            am.init(me)  # init obstacle avoidance mission
+            am.avoidObstacles(me)  # start obstacle avoidance
+            am.deinit()  # deinitialize obstacle avoidance mission
+        elif mission == "object_tracking":
+            """
+             Execute object tracking mission
+             """
+            tm.init(me)  # init object tracking mission
+            tm.trackObject(me)  # start object tracking
+            tm.deinit()  # deinitialize object tracking mission

@@ -2,22 +2,21 @@ from djitellopy import tello
 import cv2
 import numpy as np
 import time
-import keyPressModule as kp
-from imageRecolorModule import colorize
 
-kp.init()
+from development import keyPressModule as kp
 
 DRONECAM = True  # using drone or computer cam
 
-FRONTCAM = True
+FRONTCAM = True  # get stream from front camera
 
 if FRONTCAM:
     w, h = 360, 240  # width and height of video frame
 else:
     w, h = 321, 240  # width and height of video frame
 
-hsvVals = [26, 61, 137, 255, 255, 255]  # hsv range values for yellow line
-thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white line
+# hsvVals = [26, 61, 137, 255, 255, 255]  # test-ground # hsv range values for yellow line
+hsvVals = [25, 36, 172, 46, 255, 255]  # home-ground # hsv range values for yellow line
+thres_vals = [181, 191, 188, 255, 255, 255]  # test-ground # threshold range values for white line
 
 sensors = 3  # sensors in the image
 
@@ -27,38 +26,33 @@ senstivity = 2  # sensitivity of motion change
 
 turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
-fspeed = 20   # forward speed
+fspeed = 20  # forward speed
 
-me = ""
-if DRONECAM:
-    me = tello.Tello()
-    me.connect()
-    time.sleep(1)
-    if FRONTCAM:
-        me.streamon_front()
-    else:
-        me.streamon_bottom()
 
-    time.sleep(3)
-    print(me.get_battery())
-else:
-    cap = cv2.VideoCapture(0)
+def init(tello):
+    """
+        initializing the line follow mission, should be called first before calling
+        followLine()
+    """
+    print("line following initializing...")
 
-me.send_rc_control(0, 0, 0, 0)
-me.takeoff()
-time.sleep(5)
+    if tello.is_flying is False:
+        raise Exception('drone is not flying, can\'t follow line')
 
-# move to set height above the ground
-flightHeight = 20  # fly at this level above the ground
-goToHeight = flightHeight - me.get_height()
-while True:
-    me.send_rc_control(0, 0, goToHeight, 0)
-    print(me.get_height())
-    if me.get_height() == flightHeight:
-        me.send_rc_control(0, 0, 0, 0)
-        break
+    # move to set height above the ground
+    flightHeight = 20  # fly at this level above the ground
+    goToHeight = flightHeight - tello.get_height()
+    while True:
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.land()
 
-print("height is: {}".format(me.get_height()))
+        tello.send_rc_control(0, 0, goToHeight, 0)
+        print(f'flying at {tello.get_height()}cm')
+        if tello.get_height() == flightHeight:
+            tello.send_rc_control(0, 0, 0, 0)
+            break
+
+    print("Reached line following height of: {} cm".format(tello.get_height()))
 
 
 def thresholding(img):
@@ -128,7 +122,7 @@ def getSensorOutput(imgThres, sensors):
     return senOut
 
 
-def sendCommands(senOut, cx):
+def sendCommands(tello, senOut, cx):
     """
     send commands to the tello drone
 
@@ -164,22 +158,25 @@ def sendCommands(senOut, cx):
         curve = turnWeights[2]
 
     if DRONECAM:
-        me.send_rc_control(curve, fspeed, 0, lr)
+        tello.send_rc_control(curve, fspeed, 0, lr)
 
 
-count_frames = 0 # count number of frames that have passed
+def followLine(tello, cap=None):
+    """
+    Main function that controls the following of the line, call after calling init()
+    :param tello:
+    :return:
+    """
+    print("line following launched...")
 
-
-def followLine(tello):
-    print("line follow")
     img = ""
     imgCount = 0
+    count_frames = 0  # count number of frames that have passed
     gotStream = False
 
     while True:
-        print("while loop")
-        if kp.getKey("q"):
-            me.land()
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.land()
 
         if DRONECAM:
             img = tello.get_frame_read().frame
@@ -188,11 +185,12 @@ def followLine(tello):
                 img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
                 cv2.imshow("output-0", img)
 
-            print("drone cam")
+            print("got drone camera stream")
+
             gotStream = True
         else:
             _, img = cap.read()
-            print("web cam")
+            print("got web cam stream")
 
         if gotStream:
             img = cv2.resize(img, (w, h))
@@ -200,23 +198,24 @@ def followLine(tello):
             if FRONTCAM:
                 img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
                 imgThres = thresholding(img)  # color image thresholding
+                # cv2.imshow("Cut", img_cut) # cut image
             else:
-                colorized = colorize(img)
+                # colorized = colorize(img)
                 imgThres = thresholding(img)  # color image thresholding
                 # imgThres = thresholding_bw(img)  # black and white image thresholding
 
             cx = getContours(imgThres, img)  # image translation
 
             senOut = getSensorOutput(imgThres, sensors)
-            sendCommands(senOut, cx)
+            sendCommands(tello, senOut, cx)
 
             # if cx == 0:
             #     count_frames = count_frames + 1
             #     if count_frames == 20:  # if no contour found for this long, reached end of line
             #         print("Reached end of line")
-            #         me.send_rc_control(0, fspeed, 0, 0)
+            #         tello.send_rc_control(0, fspeed, 0, 0)
             #         time.sleep(2)
-            #         me.land()
+            #         tello.land()
             #         break
             # else:
             #     count_frames = 0
@@ -225,14 +224,42 @@ def followLine(tello):
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
             imgCount = imgCount + 1
             cv2.imshow("Thres", imgThres)
-            # cv2.imshow("Cut", img_cut)
             cv2.waitKey(1)
         else:
             print("waiting stream...")
 
 
-if __name__ == '__main__':
-    followLine(me)
+def deinit(cap=None):
+    print("line following deinitializing...")
+
     if not DRONECAM:
         cap.release()
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+
+    kp.init()  # initialize pygame keypress module
+
+    cap = ""
+    if DRONECAM:
+        tello = tello.Tello()
+        tello.connect()
+        time.sleep(1)
+        if FRONTCAM:
+            tello.streamon_front()
+        else:
+            tello.streamon_bottom()
+
+        time.sleep(3)
+        print(tello.get_battery())
+    else:
+        cap = cv2.VideoCapture(0)
+
+    tello.send_rc_control(0, 0, 0, 0)
+    tello.takeoff()
+    time.sleep(5)
+
+    init(tello)  # init line follow mission
+    followLine(tello)  # start line following
+    deinit(cap)  # deinitialize line follow mission

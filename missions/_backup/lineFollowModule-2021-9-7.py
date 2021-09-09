@@ -2,7 +2,7 @@ from djitellopy import tello
 import cv2
 import numpy as np
 import time
-import keyPressModule as kp
+from development import keyPressModule as kp
 
 kp.init()
 
