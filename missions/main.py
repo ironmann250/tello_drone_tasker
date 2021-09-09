@@ -55,3 +55,7 @@ if __name__ == '__main__':
             tm.init(me)  # init object tracking mission
             tm.trackObject(me)  # start object tracking
             tm.deinit()  # deinitialize object tracking mission
+
+   # missions finished land drone
+    me.send_rc_control(0, 0, 0, 0)
+    me.land()
