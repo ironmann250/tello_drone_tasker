@@ -53,6 +53,28 @@ cv2.createTrackbar("VALUE Max", "HSV", valInit[5], 255, empty)
 
 frameCounter = 0
 
+
+
+def getContours(imgThres, img):
+    """
+    :param imgThres: black and white image with target from thresholding function
+    :param img: colored image
+    :return:
+    """
+    cx = 0
+    area = 0
+    contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if len(contours) != 0:
+        biggest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(biggest)
+        cx = x + w // 2
+        cy = y + h // 2
+        area = w * h  # area of bounding box
+        cv2.drawContours(img, biggest, -1, (255, 0, 255), 7)
+        cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
+
+    return cx, area
+
 while True:
 
     if DRONECAM:
@@ -91,10 +113,13 @@ while True:
         result = cv2.bitwise_and(img, img, mask=mask)
     else:
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
         mask1 = cv2.inRange(imgHsv, np.array([0,70,50]), np.array([10,255,255]))
         mask2 = cv2.inRange(imgHsv, np.array([170,70,50]), np.array([180,255,255]))
         mask = mask1|mask2
+
+        cx, area = getContours(mask,img)
+
+        print(f"center:{cx}, area:{area}")
 
         result = cv2.bitwise_and(img, img, mask=mask)
 
