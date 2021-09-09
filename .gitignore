@@ -6,3 +6,5 @@ tunning/model/pts_in_hull.npy
 missions/model/colorization_deploy_v2.prototxt
 missions/model/colorization_release_v2.caffemodel
 missions/model/pts_in_hull.npy
+__pycache__/
+.idea/
