@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import time
 
-from development import keyPressModule as kp
+import keyPressModule as kp
 
 DRONECAM = True  # using drone or computer cam
 
@@ -14,9 +14,11 @@ if FRONTCAM:
 else:
     w, h = 321, 240  # width and height of video frame
 
+# hsvVals = [20, 100, 100, 30, 255, 255] # base-line # yellow thres in hsv
 # hsvVals = [26, 61, 137, 255, 255, 255]  # test-ground # hsv range values for yellow line
 hsvVals = [25, 36, 172, 46, 255, 255]  # home-ground # hsv range values for yellow line
-thres_vals = [181, 191, 188, 255, 255, 255]  # test-ground # threshold range values for white line
+
+thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white line (black and white )
 
 sensors = 3  # sensors in the image
 
@@ -68,6 +70,15 @@ def thresholding(img):
     return mask
 
 
+def thresRed(img):
+    """for thresholding the red color from the color image"""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+    return mask
+
+
 def thresholding_bw(img):
     """
     thresholding function, find the target white patch from the black and white image
@@ -80,6 +91,17 @@ def thresholding_bw(img):
     return mask
 
 
+def isEndOfLine(img):
+    end_of_line = False
+    mask = thresRed(img)
+    cx, area = getContours(mask, img)
+
+    if 1000 < area < 3000:
+        end_of_line = True
+
+    return end_of_line
+
+
 def getContours(imgThres, img):
     """
     :param imgThres: black and white image with target from thresholding function
@@ -87,16 +109,20 @@ def getContours(imgThres, img):
     :return:
     """
     cx = 0
+    area = 0
     contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if len(contours) != 0:
         biggest = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(biggest)
         cx = x + w // 2
         cy = y + h // 2
+        area = w * h  # area of bounding box
         cv2.drawContours(img, biggest, -1, (255, 0, 255), 7)
         cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
 
-    return cx
+    print(f"contour center:{cx}, area:{area}")
+
+    return cx, area
 
 
 def getSensorOutput(imgThres, sensors):
@@ -200,26 +226,27 @@ def followLine(tello, cap=None):
                 imgThres = thresholding(img)  # color image thresholding
                 # cv2.imshow("Cut", img_cut) # cut image
             else:
-                # colorized = colorize(img)
                 imgThres = thresholding(img)  # color image thresholding
-                # imgThres = thresholding_bw(img)  # black and white image thresholding
 
-            cx = getContours(imgThres, img)  # image translation
+            # follow line
+            cx, area = getContours(imgThres, img)  # image translation
+
+            if area < 100:
+                # check if reached end of line
+                if isEndOfLine(img):
+                    print("Reached end of line!")
+                    tello.send_rc_control(0, fspeed, 0, 0)
+                    time.sleep(1)
+                    tello.send_rc_control(0, 0, 0, 0)
+                    # tello.land()
+
+                    break  # break from while loop
 
             senOut = getSensorOutput(imgThres, sensors)
+
             sendCommands(tello, senOut, cx)
 
-            # if cx == 0:
-            #     count_frames = count_frames + 1
-            #     if count_frames == 20:  # if no contour found for this long, reached end of line
-            #         print("Reached end of line")
-            #         tello.send_rc_control(0, fspeed, 0, 0)
-            #         time.sleep(2)
-            #         tello.land()
-            #         break
-            # else:
-            #     count_frames = 0
-
+            # visualize progress
             cv2.imshow("output", img)
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
             imgCount = imgCount + 1
