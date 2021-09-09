@@ -1,4 +1,4 @@
-def init():
+def init(tello):
     """
         initializing the obstacle avoidance, should be called first before calling
         trackObject()
@@ -6,7 +6,7 @@ def init():
     print("obstacle avoidance initializing...")
 
 
-def avoidObstacles():
+def avoidObstacles(tello):
     """
         initializing the obstacle avoidance, should be called after calling
         init()

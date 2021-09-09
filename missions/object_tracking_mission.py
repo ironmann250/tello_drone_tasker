@@ -1,4 +1,4 @@
-def init():
+def init(tello):
     """
         initializing the object tracking, should be called first before calling
         trackObject()
@@ -6,7 +6,7 @@ def init():
     print("object tracking initializing...")
 
 
-def trackObject():
+def trackObject(tello):
     """
         initializing the object tracking, should be called after calling
         init()
