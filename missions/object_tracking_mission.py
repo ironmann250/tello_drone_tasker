@@ -6,18 +6,18 @@ import keyPressModule as kp
 
  #### debug vals ###
 debug=False
-testTime=0
+testTime=45
 
 
 ### video & control vals ###
-startHeight,Herror=[85,2]
+startHeight,Herror=[80,2]
 waittime=0.5
 change=0
 timeWaited=0
-multiplier=2
+multiplier=1
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
-fbRange = [20000*(multiplier*multiplier),40000*(multiplier*multiplier)]#[6200, 6800]
+fbRange = [10000*(multiplier*multiplier),20000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
@@ -28,8 +28,10 @@ pErrorUd = 0
 #upper = np.array([179,255,255])#h_max,s_max,v_max
 #lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
 #upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
-lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
-upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
+#lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
+#upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
+lower = np.array([0,241,0])#red h_min,s_min,v_min
+upper = np.array([2,255,255])#red
 #lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
 #upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
 
@@ -41,10 +43,9 @@ def init(tello):
     """
     print("object tracking initializing...")
     if not debug:
-        #tello.takeoff()
+        tello.takeoff()
         #go to starting height within error Herror
         while(abs(tello.get_height()-startHeight)>Herror):
-            break
             print (tello.get_height())
             if kp.getKey("q"):  # Allow press 'q' to land in case of etellorgency
                 tello.land()
@@ -53,6 +54,7 @@ def init(tello):
                 tello.send_rc_control(0, 0, -20, 0)
             else:
                 tello.send_rc_control(0 , 0, 20, 0)
+            tello.send_rc_control(0 , 0, 0, 0)
         print("Reached tracking height of: {} cm".format(tello.get_height()))        
 
 def get_mask(img,imgHsv,lower,upper): #
