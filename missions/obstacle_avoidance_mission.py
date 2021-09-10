@@ -47,7 +47,6 @@ def avoidObstacles(tello):
         initializing the obstacle avoidance, should be called after calling
         init()
     """
-    tello.land()
     print("obstacle avoidance launched...")
 
 
@@ -72,8 +71,8 @@ if __name__ == "__main__":
 
     tello.send_rc_control(0, 0, 0, 0)
 
-    #tello.takeoff()
-    #time.sleep(3)
+    tello.takeoff()
+    time.sleep(3)
 
     init(tello)
     avoidObstacles(tello)
