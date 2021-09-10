@@ -1,3 +1,9 @@
+from djitellopy import tello
+import time
+
+import keyPressModule as kp
+
+
 def init(tello):
     """
         initializing the object tracking, should be called first before calling
@@ -22,6 +28,22 @@ def deinit():
 
 
 if __name__ == "__main__":
-    init()
-    trackObject()
+    kp.init()  # initialize pygame keypress module
+
+    tello = tello.Tello()
+    tello.connect()
+    time.sleep(1)
+
+    tello.streamon_front()
+    time.sleep(3)
+
+    print("battery level is {}".format(tello.get_battery()))
+
+    tello.send_rc_control(0, 0, 0, 0)
+
+    tello.takeoff()
+    time.sleep(3)
+
+    init(tello)
+    trackObject(tello)
     deinit()
