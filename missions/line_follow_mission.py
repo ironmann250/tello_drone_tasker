@@ -39,16 +39,19 @@ def init(tello):
     print("line following initializing...")
 
     if tello.is_flying is False:
-        raise Exception('drone is not flying, can\'t follow line')
+        raise Exception('drone is not flying, can\'t start mission')
 
     # move to set height above the ground
     flight_height = 20  # fly at this level above the ground
 
     curr_height = tello.get_height()
-    if curr_height < 60:  # error in height, typically 80cm after take off
-        Exception('drone returned wrong height after take off')
 
-    go_to_height = flight_height - curr_height
+    go_to_height_v = 0  # velocity for going to mission flight height
+
+    if (flight_height - curr_height) > 0:
+        go_to_height_v = 15
+    else:
+        go_to_height_v = -15
 
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
@@ -62,7 +65,7 @@ def init(tello):
             tello.send_rc_control(0, 0, 0, 0)
             break
 
-        tello.send_rc_control(0, 0, go_to_height, 0)
+        tello.send_rc_control(0, 0, go_to_height_v, 0)
 
     print("Reached line following height of: {} cm".format(tello.get_height()))
 
