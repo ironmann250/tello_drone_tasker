@@ -4,7 +4,7 @@ import cv2
 import time
 import keyPressModule as kp
 
-startHeight,Herror=[25,2]
+startHeight,Herror=[85,2]
 debug=False
 testtime=0
 waittime=0.5
