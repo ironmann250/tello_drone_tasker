@@ -6,17 +6,27 @@ from matplotlib import pyplot as plt
 cap = cv2.VideoCapture(0)
 lower = np.array([0,241,0])#red h_min,s_min,v_min
 upper = np.array([2,255,255])#red
+
+def thresRed(img):
+    """for thresholding the red color from the color image"""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+    return mask
+
 while True:
     _, img = cap.read()#cv2.imread("shapes.png")
     print(len(img))
+    
     #imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
     #mask = cv2.inRange(imgHsv,lower,upper)
-    #result = cv2.bitwise_and(img,img, mask = mask)
+    result = cv2.bitwise_and(img,img, mask = thresRed(img))
     #mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     #imgBlur = cv2.GaussianBlur(result, (7, 7), 1)
-
+    
     # converting image into grayscale image
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
     
     # setting threshold of gray image
     #_, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
@@ -45,8 +55,13 @@ while True:
             contour, 0.01 * cv2.arcLength(contour, True), True)
         
         # using drawContours() function
-        cv2.drawContours(img, [contour], 0, (0, 0, 255), 5)
-    
+        
+        x_ , y_ , w_, h_ = cv2.boundingRect(approx)
+        cx = x_ + w_ // 2
+        cy = y_ + h_ // 2
+        area = w_ * h_
+        if area>105000:
+            cv2.drawContours(img, [contour], 0, (0, 0, 255), 5)
         # finding center point of shape
         x,y=0,0
         M = cv2.moments(contour)
