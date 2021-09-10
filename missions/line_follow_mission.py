@@ -42,17 +42,27 @@ def init(tello):
         raise Exception('drone is not flying, can\'t follow line')
 
     # move to set height above the ground
-    flightHeight = 20  # fly at this level above the ground
-    goToHeight = flightHeight - tello.get_height()
+    flight_height = 20  # fly at this level above the ground
+
+    curr_height = tello.get_height()
+    if curr_height < 60:  # error in height, typically 80cm after take off
+        Exception('drone returned wrong height after take off')
+
+    go_to_height = flight_height - curr_height
+
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
             tello.land()
 
-        tello.send_rc_control(0, 0, goToHeight, 0)
-        print(f'flying at {tello.get_height()}cm')
-        if tello.get_height() == flightHeight:
+        curr_height = tello.get_height()
+
+        print(f'flying at {curr_height}cm')
+
+        if curr_height == flight_height:
             tello.send_rc_control(0, 0, 0, 0)
             break
+
+        tello.send_rc_control(0, 0, go_to_height, 0)
 
     print("Reached line following height of: {} cm".format(tello.get_height()))
 
@@ -94,15 +104,15 @@ def thresholding_bw(img):
 def isEndOfLine(img):
     end_of_line = False
     mask = thresRed(img)
-    cx, area = getContours(mask, img)
+    cx, area = getContours(mask, img, (255, 0, 0))
 
-    if 1000 < area < 3000:
+    if 500 < area < 3000:
         end_of_line = True
 
     return end_of_line
 
 
-def getContours(imgThres, img):
+def getContours(imgThres, img, color=(255, 0, 255)):
     """
     :param imgThres: black and white image with target from thresholding function
     :param img: colored image
@@ -117,10 +127,10 @@ def getContours(imgThres, img):
         cx = x + w // 2
         cy = y + h // 2
         area = w * h  # area of bounding box
-        cv2.drawContours(img, biggest, -1, (255, 0, 255), 7)
+        cv2.drawContours(img, biggest, -1, color, 7)
         cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
 
-    print(f"contour center:{cx}, area:{area}")
+    print(f"contour color: {color} center:{cx}, area:{area}")
 
     return cx, area
 
@@ -142,7 +152,7 @@ def getSensorOutput(imgThres, sensors):
             senOut.append(1)
         else:
             senOut.append(0)
-        cv2.imshow(str(x), im)
+        # cv2.imshow(str(x), im)
     print(senOut)
 
     return senOut
@@ -230,27 +240,29 @@ def followLine(tello, cap=None):
 
             # follow line
             cx, area = getContours(imgThres, img)  # image translation
+            senOut = getSensorOutput(imgThres, sensors)
 
             if area < 100:
                 # check if reached end of line
                 if isEndOfLine(img):
+                    # tello.send_rc_control(0, 0, 0, 0)
+                    sendCommands(tello, senOut, cx)
+                    time.sleep(3)
                     print("Reached end of line!")
-                    tello.send_rc_control(0, fspeed, 0, 0)
-                    time.sleep(1)
+                    # tello.send_rc_control(0, 10, 0, 0)
+                    # time.sleep(1)
                     tello.send_rc_control(0, 0, 0, 0)
                     # tello.land()
 
                     break  # break from while loop
 
-            senOut = getSensorOutput(imgThres, sensors)
-
             sendCommands(tello, senOut, cx)
 
             # visualize progress
-            cv2.imshow("output", img)
+            # cv2.imshow("output", img)
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
             imgCount = imgCount + 1
-            cv2.imshow("Thres", imgThres)
+            # cv2.imshow("Thres", imgThres)
             cv2.waitKey(1)
         else:
             print("waiting stream...")
