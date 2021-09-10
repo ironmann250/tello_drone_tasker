@@ -31,6 +31,9 @@ def init():
     me.send_rc_control(0, 0, 0, 0)
     me.takeoff()
 
+    if me.get_height() < 60:  # error in height, typically 80cm after take off
+        Exception('drone returned wrong height after take off')
+
     return me
 
 
