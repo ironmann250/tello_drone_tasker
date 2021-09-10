@@ -55,5 +55,5 @@ def deinit():
 
 if __name__ == "__main__":
     init()
-    trackObject()
+    avoidObstacles()
     deinit()
