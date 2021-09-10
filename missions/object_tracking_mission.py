@@ -5,7 +5,7 @@ import time
 import keyPressModule as kp
 
  #### debug vals ###
-debug=True
+debug=False
 testTime=0
 
 
@@ -41,9 +41,10 @@ def init(tello):
     """
     print("object tracking initializing...")
     if not debug:
-        tello.takeoff()
+        #tello.takeoff()
         #go to starting height within error Herror
         while(abs(tello.get_height()-startHeight)>Herror):
+            break
             print (tello.get_height())
             if kp.getKey("q"):  # Allow press 'q' to land in case of etellorgency
                 tello.land()
@@ -158,10 +159,10 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     if not debug:
         me.send_rc_control(0, fb, -ud, speed)
         #pass
-    return errorSpeed,errorUd
+    return [errorSpeed,errorUd]
 
 def trackObject(tello):
-    global cap,w,h
+    global cap,w,h,pErrorSpeed,pErrorUd
     """
         initializing the object tracking, should be called after calling
         init()
@@ -175,7 +176,6 @@ def trackObject(tello):
 
     while True:
         if testTime !=0 and (time.time()-now >=testTime):
-            if debug:
                 tello.land()
                 break
         if debug:
@@ -200,12 +200,11 @@ def trackObject(tello):
         kernel = np.ones((5, 5))
         imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
         img, info = getContours(imgDil , imgContour)
-        pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd)
+        pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
         #print("Area", info[1], "Center", info[1])
         cv2.imshow("output", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            if not debug:
-                tello.land()
+            tello.land()
             break
 
     
@@ -218,6 +217,7 @@ def deinit():
     print("object tracking deinitializing...")
 
 
+pErrorSpeed = 0
 
 if __name__ == "__main__":
     if not debug:
@@ -233,8 +233,8 @@ if __name__ == "__main__":
         print("battery level is {}".format(tello.get_battery()))
 
         tello.send_rc_control(0, 0, 0, 0)
-    else:
-        tello=''
+
+
 
     #tello.takeoff()
     #time.sleep(3)
