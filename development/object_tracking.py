@@ -2,7 +2,7 @@ from djitellopy import tello
 import numpy as np
 import cv2
 import time
-debug=False
+debug=True
 testTime=0
 waitTime=0.5
 change=0
