@@ -294,7 +294,7 @@ if __name__ == '__main__':
             tello.streamon_bottom()
 
         time.sleep(3)
-        print("battery level is {}".format(me.get_battery()))
+        print("battery level is {}".format(tello.get_battery()))
     else:
         cap = cv2.VideoCapture(0)
 
