@@ -1,4 +1,8 @@
+from djitellopy import tello
+import time
+
 import keyPressModule as kp
+
 
 def init(tello):
     """
@@ -54,6 +58,22 @@ def deinit():
 
 
 if __name__ == "__main__":
-    init()
-    avoidObstacles()
+    kp.init()  # initialize pygame keypress module
+
+    tello = tello.Tello()
+    tello.connect()
+    time.sleep(1)
+
+    tello.streamon_front()
+    time.sleep(3)
+
+    print("battery level is {}".format(tello.get_battery()))
+
+    tello.send_rc_control(0, 0, 0, 0)
+
+    tello.takeoff()
+    time.sleep(3)
+
+    init(tello)
+    avoidObstacles(tello)
     deinit()
