@@ -17,9 +17,9 @@ def init(tello):
 
     go_to_height_v = 0  # velocity for going to mission flight height
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 15
+        go_to_height_v = 20
     else:
-        go_to_height_v = -15
+        go_to_height_v = -20
 
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
