@@ -9,6 +9,10 @@ debug=False
 testtime=0
 waittime=0.5
 change=0
+
+
+
+
 timeWaited=0
 multiplier=2
 w, h = 360*multiplier, 240*multiplier
