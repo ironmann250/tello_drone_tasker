@@ -1,29 +1,35 @@
 from djitellopy import tello
 import time
+import cv2
+import numpy as np
 
 import keyPressModule as kp
 
 import line_follow_mission as fm
-import  object_tracking_mission as tm
-import  obstacle_avoidance_mission as am
+import object_tracking_mission as tm
+import obstacle_avoidance_mission as am
 
 
 def init():
-
     kp.init()  # initialize pygame keypress module
-    
+    # cv2.imshow("output", np.zeros(shape=[360, 240, 3], dtype=np.uint8))  # create cv2 window
+    time.sleep(3)
+
     # initialize me drone
     me = tello.Tello()
     me.connect()
     print("battery level is {}".format(me.get_battery()))
-    time.sleep(1)
 
-    # start stream and take off
+    # start stream
     me.streamon_front()
-    time.sleep(3)
+
+    # get and show test frame from drone
+    img = me.get_frame_read().frame
+    cv2.imshow("output", img)
+
+    # take off
     me.send_rc_control(0, 0, 0, 0)
     me.takeoff()
-    time.sleep(5)
 
     return me
 
@@ -56,6 +62,6 @@ if __name__ == '__main__':
             tm.trackObject(me)  # start object tracking
             tm.deinit()  # deinitialize object tracking mission
 
-   # missions finished land drone
+    # missions finished land drone
     me.send_rc_control(0, 0, 0, 0)
     me.land()
