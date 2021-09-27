@@ -22,9 +22,9 @@ if DRONECAM:
     print(me.get_battery())
 
     if ISBW:
-        me.streamon_bottom()
+        me.streamon
     else:
-        me.streamon_front()
+        me.streamon
 else:
     cap = cv2.VideoCapture(0)
 
