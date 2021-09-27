@@ -1,7 +1,18 @@
 from djitellopy import tello
 import time
+import cv2
+import numpy as np
 
 import keyPressModule as kp
+
+DRONECAM = True  # using drone or computer cam
+
+FRONTCAM = True  # get stream from front camera
+
+if FRONTCAM:
+    w, h = 360, 240  # width and height of video frame
+else:
+    w, h = 321, 240  # width and height of video frame
 
 
 def init(tello):
@@ -15,7 +26,7 @@ def init(tello):
         raise Exception('drone is not flying, can\'t start mission')
 
         # move to set height above the ground
-    flight_height = 80  # fly at this level above the ground
+    flight_height = 40  # fly at this level above the ground
 
     curr_height = tello.get_height()
 
@@ -41,13 +52,160 @@ def init(tello):
 
     print("Reached obstacle avoidance mission height of: {} cm".format(tello.get_height()))
 
+def getContours(imgThres, img, color=(255, 0, 255)):
+    """
+    :param imgThres: black and white image with target from thresholding function
+    :param img: colored image
+    :return:
+    """
+    cx = 0
+    area = 0
+    contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if len(contours) != 0:
+        biggest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(biggest)
+        cx = x + w // 2
+        cy = y + h // 2
+        area = w * h  # area of bounding box
+        cv2.drawContours(img, biggest, -1, color, 7)
+        cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
 
-def avoidObstacles(tello):
+    print(f"contour color: {color} center:{cx}, area:{area}")
+
+    return cx, area
+
+def thresRed(img):
+    """for thresholding the red color from the color image"""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+    return mask
+
+def isEndMission(img):
+    """check if there is a green ball to be followed in image"""
+
+
+def getSensorOutput(cx, area):
+    """
+    get sensor output
+
+    :param cx: center of found contour
+    :param area: of found contour
+    :return: senOut
+    """
+    imgs = np.hsplit(imgThres, sensors)
+    totalPixels = imgThres.shape[1] // sensors * imgThres.shape[0]
+    senOut = []
+    for x, im in enumerate(imgs):
+        pixelCount = cv2.countNonZero(im)
+        if pixelCount > thresholdPixels * totalPixels:
+            senOut.append(1)
+        else:
+            senOut.append(0)
+        # cv2.imshow(str(x), im)
+    print(senOut)
+
+    return senOut
+
+def sendCommands(tello, senOut, cx):
+    """
+    send commands to the tello drone
+
+    :param senOut: sensor output
+    :param cx: center of the detected yellow patch
+    :return: None
+    """
+    # Translation
+    lr = 0
+    ud = 0
+    fb = 0
+
+    motionspeed = 15
+
+    # Rotation
+    if senOut == "up":
+        ud = motionspeed
+    elif senOut == "down":
+        ud = -motionspeed
+    elif senOut == "forward":
+        fb = motionspeed
+    elif senOut == "backward":
+        fb = -motionspeed
+    elif senOut == "left":
+        lr = motionspeed
+    elif senOut == "right":
+        lr = -motionspeed
+
+    print(f"moving up/down:{ud}, forward/backward:{fb}, left/right:{lr}")
+
+    if DRONECAM:
+        tello.send_rc_control(lr, fb, ud, 0)
+
+def avoidObstacles(tello,cap=None):
     """
         initializing the obstacle avoidance, should be called after calling
         init()
     """
     print("obstacle avoidance launched...")
+    while True:
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.land()
+
+        if DRONECAM:
+            img = tello.get_frame_read().frame
+
+            if not FRONTCAM:
+                img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+                cv2.imshow("output-0", img)
+
+            print("got drone camera stream")
+
+            gotStream = True
+        else:
+            _, img = cap.read()
+            print("got web cam stream")
+
+        if gotStream:
+            img = cv2.resize(img, (w, h))
+
+            if FRONTCAM:
+                # img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
+                imgThres = thresRed(img)  # color image thresholding
+                # cv2.imshow("Cut", img_cut) # cut image
+            else:
+                imgThres = thresRed(img)  # color image thresholding
+
+            # avoid obstacles
+            cx, area = getContours(imgThres, img)  # image translation
+            senOut = getSensorOutput(cx, area)
+
+            if area < 100:
+                # check if reached end of line
+                if isEndMission(img):  # check if the drone has seen a green ball to start following it
+                    # tello.send_rc_control(0, 0, 0, 0)
+                    sendCommands(tello, senOut, cx)
+                    time.sleep(2)
+                    print("Reached start of object tracking mission!")
+                    # tello.send_rc_control(0, 10, 0, 0)
+                    # time.sleep(1)
+                    tello.send_rc_control(0, 0, 0, 0)
+                    # tello.land()
+
+                    break  # break from while loop
+
+            sendCommands(tello, senOut, cx)
+
+            # visualize progress
+            # cv2.imshow("output", img)
+            cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
+            imgCount = imgCount + 1
+            # cv2.imshow("Thres", imgThres)
+            cv2.waitKey(1)
+        else:
+            print("waiting stream...")
+
+
 
 
 def deinit():
