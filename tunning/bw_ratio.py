@@ -19,6 +19,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
     cx = 0
     area = 0
     white_to_black_ratio = -1
+    is_circular = False
     contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if len(contours) != 0:
         biggest = max(contours, key=cv2.contourArea)
@@ -43,16 +44,32 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         cv2.imshow("roi_contour_mask", roi_contour_mask)
         # total_white_inside_contour = cv2.countNonZero(roi_contour_mask)
 
+        # black region inside region of interest
         roi_black = roi_contour_mask-roi
         black_inside_roi = cv2.countNonZero(roi_black)
         print(f"white:{total_white_of_roi}, black: {black_inside_roi}")
         cv2.imshow("black area", roi_black )
 
+        # get ratio
         white_to_black_ratio = black_inside_roi/total_white_of_roi
+
+        # check of element in roi is circular
+        circles = cv2.HoughCircles(roi, cv2.HOUGH_GRADIENT, 1, 20,
+                                  param1=50, param2=30, minRadius=100, maxRadius=0)
+        if circles is not None:
+            is_circular = True
+            for i in circles[0, :]:
+                # draw the outer circle
+                cv2.circle(roi, (i[0], i[1]), i[2], (0, 255, 0), 2)
+                # draw the center of the circle
+                cv2.circle(roi, (i[0], i[1]), 2, (0, 0, 255), 3)
+            cv2.imshow('detected circles', roi)
+        else:
+            is_circular = False
 
     print(f"contour color: {color} center:{cx}, area:{area}, white/black ratio: {white_to_black_ratio}")
 
-    return cx, area
+    return cx, area, white_to_black_ratio, is_circular
 
 
 if __name__ == '__main__':
@@ -60,10 +77,10 @@ if __name__ == '__main__':
     image_cir = cv2.imread("./red_cir.png")
     image_rec = cv2.imread("./red_rec.png")
 
-    image = image_tri
+    image = image_cir
     thresImg = thresRed(image)
 
-    cx, area = getContours(thresImg, image)
+    cx, area, white_to_black_ratio, is_circular = getContours(thresImg, image)
 
     cv2.imshow("Original", image)
     #cv2.imshow("thresholded", thresImg)
