@@ -78,12 +78,18 @@ if __name__ == '__main__':
     image_rec = cv2.imread("./red_rec.png")
 
     image = image_cir
-    thresImg = thresRed(image)
 
-    cx, area, white_to_black_ratio, is_circular = getContours(thresImg, image)
+    cap = cv2.VideoCapture(0)
+    while True:
+        _, image = cap.read()
 
-    cv2.imshow("Original", image)
-    #cv2.imshow("thresholded", thresImg)
+        thresImg = thresRed(image)
 
-    cv2.waitKey(0)
+        cx, area, white_to_black_ratio, is_circular = getContours(thresImg, image)
+
+        cv2.imshow("Original", image)
+        #cv2.imshow("thresholded", thresImg)
+
+        cv2.waitKey(1)
+
     cv2.destroyAllWindows()
