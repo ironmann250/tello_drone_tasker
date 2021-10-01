@@ -4,6 +4,8 @@ import cv2
 
 import numpy as np
 
+import time
+
 import image_recolor as recolor
 
 DRONECAM = True  # using drone or computer cam
@@ -14,17 +16,18 @@ frameWidth = 480
 frameHeight = 360
 
 me = ""
+
 if DRONECAM:
     me = tello.Tello()
 
     me.connect()
-
+    time.sleep(1)
     print(me.get_battery())
 
     if ISBW:
-        me.streamon
+        tello.streamon_bottom()
     else:
-        me.streamon
+        tello.streamon_front()
 else:
     cap = cv2.VideoCapture(0)
 
