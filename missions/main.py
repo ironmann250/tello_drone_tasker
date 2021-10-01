@@ -1,3 +1,7 @@
+import sys
+#use the local dji tellopy
+sys.path.insert(0, './../')
+
 from djitellopy import tello
 import time
 import cv2
