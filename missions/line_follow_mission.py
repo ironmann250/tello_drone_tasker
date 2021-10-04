@@ -5,9 +5,11 @@ sys.path.insert(0, './../')
 from djitellopy import tello
 import cv2
 import numpy as np
+import copy
 import time
 
 import keyPressModule as kp
+import obstacle_avoidance_mission as am
 
 DRONECAM = True  # using drone or computer cam
 
@@ -46,16 +48,16 @@ def init(tello):
         raise Exception('drone is not flying, can\'t start mission')
 
     # move to set height above the ground
-    flight_height = 20  # fly at this level above the ground
+    flight_height = 70  # fly at this level above the ground
 
     curr_height = tello.get_height()
 
     go_to_height_v = 0  # velocity for going to mission flight height
 
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 20
+        go_to_height_v = 10
     else:
-        go_to_height_v = -20
+        go_to_height_v = -10
 
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
@@ -113,8 +115,11 @@ def isEndOfLine(img):
     mask = thresRed(img)
     cx, area = getContours(mask, img, (255, 0, 0))
 
-    if 500 < area < 3000:
+    print(f"red area is: {area}")
+
+    if 100 < area < 100:
         end_of_line = True
+        #end_of_line = False
 
     return end_of_line
 
@@ -160,7 +165,7 @@ def getSensorOutput(imgThres, sensors):
         else:
             senOut.append(0)
         # cv2.imshow(str(x), im)
-    print(senOut)
+    print(f" sensor output is {senOut}")
 
     return senOut
 
@@ -175,7 +180,7 @@ def sendCommands(tello, senOut, cx):
     """
     # Translation
     lr = (cx - w // 2) // senstivity
-    print(lr)
+    print(f"lr is {lr}")
     lr = int(np.clip(lr, -100, 100))
 
     if lr < 2 and lr > -2:
@@ -222,54 +227,52 @@ def followLine(tello, cap=None):
             tello.land()
 
         if DRONECAM:
-            img = tello.get_frame_read().frame
+            img = big_img = tello.get_frame_read().frame
+            frame_copy = copy.deepcopy(img) #deep copy frame for processing by object avoidance
 
             if not FRONTCAM:
                 img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
                 cv2.imshow("output-0", img)
 
-            print("got drone camera stream")
+            #print("got drone camera stream")
 
             gotStream = True
         else:
             _, img = cap.read()
-            print("got web cam stream")
+            #print("got web cam stream")
 
         if gotStream:
-            img = cv2.resize(img, (w, h))
 
-            if FRONTCAM:
-                img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
+            if FRONTCAM:                
                 imgThres = thresholding(img)  # color image thresholding
-                # cv2.imshow("Cut", img_cut) # cut image
             else:
                 imgThres = thresholding(img)  # color image thresholding
-
+            
+            imgThres = cv2.resize(imgThres, (w, h)) #resize thres image
+            imgThres = imgThres[(imgThres.shape[0] - imgThres.shape[0] // 4):, :]        
+               
             # follow line
             cx, area = getContours(imgThres, img)  # image translation
             senOut = getSensorOutput(imgThres, sensors)
-
-            if area < 100:
-                # check if reached end of line
-                if isEndOfLine(img):
-                    # tello.send_rc_control(0, 0, 0, 0)
-                    sendCommands(tello, senOut, cx)
-                    time.sleep(2)
-                    print("Reached end of line!")
-                    # tello.send_rc_control(0, 10, 0, 0)
-                    # time.sleep(1)
-                    tello.send_rc_control(0, 0, 0, 0)
-                    # tello.land()
-
-                    break  # break from while loop
-
-            sendCommands(tello, senOut, cx)
+            sendCommands(tello, senOut, cx)           
 
             # visualize progress
             # cv2.imshow("output", img)
+            print(f"count is {imgCount}")
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
+            cv2.imwrite("./image_feed/big/" + str(imgCount) + ".jpg", big_img)
             imgCount = imgCount + 1
             # cv2.imshow("Thres", imgThres)
+
+            shape,is_avoided = am.avoidObstacles(tello,frame_copy) #check if there are objects to avoid
+
+            if shape == am.obstacle_shapes["triangle"]:
+                # found the triangle,
+                # by this time the shape has already been avoided
+
+                tello.send_rc_control(0, 0, 0, 0) #stop drone movement
+                break # mission finished, break from while loop
+
             cv2.waitKey(1)
         else:
             print("waiting stream...")
@@ -298,13 +301,18 @@ if __name__ == '__main__':
             tello.streamon_bottom()
 
         time.sleep(3)
-        print("battery level is {}".format(tello.get_battery()))
+        print("battery level is {}!".format(tello.get_battery()))
+        
     else:
         cap = cv2.VideoCapture(0)
 
     tello.send_rc_control(0, 0, 0, 0)
     tello.takeoff()
-    time.sleep(5)
+    time.sleep(1)
+
+    print(f"reading first video frame...")
+    img = tello.get_frame_read().frame #read first video frame
+    print(f"read first video frame!")
 
     init(tello)  # init line follow mission
     followLine(tello)  # start line following

@@ -29,9 +29,9 @@ if DRONECAM:
     print(me.get_battery())
 
     if ISBW:
-        tello.streamon_bottom()
+        me.streamon_bottom()
     else:
-        tello.streamon_front()
+        me.streamon_front()
 else:
     cap = cv2.VideoCapture(0)
 

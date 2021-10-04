@@ -1,4 +1,6 @@
 import sys
+
+from numpy.lib.shape_base import get_array_wrap
 #use the local dji tellopy
 sys.path.insert(0, './../')
 
@@ -18,6 +20,12 @@ if FRONTCAM:
 else:
     w, h = 321, 240  # width and height of video frame
 
+obstacle_shapes = {
+    "none": 0,
+    "rectangle": 1,
+    "circle": 2,
+    "triangle": 3 
+}
 
 def init(tello):
     """
@@ -144,12 +152,13 @@ def sendCommands(tello, senOut, cx):
     print(f"moving up/down:{ud}, forward/backward:{fb}, left/right:{lr}")
 
     if DRONECAM:
-        tello.send_rc_control(lr, fb, ud, 0)
+        #tello.send_rc_control(lr, fb, ud, 0)
+        _ = 0
 
-def avoidObstacles(tello,cap=None):
+def _avoidObstacles(tello,cap=None):
     """
         initializing the obstacle avoidance, should be called after calling
-        init()
+        init(), shouldn't be called outside this file
     """
     print("obstacle avoidance launched...")
     while True:
@@ -171,46 +180,41 @@ def avoidObstacles(tello,cap=None):
             print("got web cam stream")
 
         if gotStream:
-            img = cv2.resize(img, (w, h))
-
-            if FRONTCAM:
-                # img = img_cut = img[(img.shape[0] - img.shape[0] // 4):, :, :]
-                imgThres = thresRed(img)  # color image thresholding
-                # cv2.imshow("Cut", img_cut) # cut image
-            else:
-                imgThres = thresRed(img)  # color image thresholding
-
-            # avoid obstacles
-            cx, area = getContours(imgThres, img)  # image translation
-            senOut = getSensorOutput(cx, area)
-
-            if area < 100:
-                # check if reached end of line
-                if isEndMission(img):  # check if the drone has seen a green ball to start following it
-                    # tello.send_rc_control(0, 0, 0, 0)
-                    sendCommands(tello, senOut, cx)
-                    time.sleep(2)
-                    print("Reached start of object tracking mission!")
-                    # tello.send_rc_control(0, 10, 0, 0)
-                    # time.sleep(1)
-                    tello.send_rc_control(0, 0, 0, 0)
-                    # tello.land()
-
-                    break  # break from while loop
-
-            sendCommands(tello, senOut, cx)
-
-            # visualize progress
-            # cv2.imshow("output", img)
-            cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
-            imgCount = imgCount + 1
-            # cv2.imshow("Thres", imgThres)
+            avoidObstacles(tello, img)
             cv2.waitKey(1)
         else:
             print("waiting stream...")
 
+imgCount = 0 #image count
 
+def avoidObstacles(tello,frame):
+    """
+        initializing the obstacle avoidance, should be called after calling
+        init()
+    """
+    # print("obstacle avoidance launched...")
 
+    # img = cv2.resize(frame, (w, h)) #resize image
+
+    # imgThres = thresRed(img)  # color image thresholding
+
+    # # avoid obstacles
+    # cx, area = getContours(imgThres, img)  # image translation
+    # senOut = getSensorOutput(cx, area)
+
+    # shape = obstacle_shapes["none"] #get trype of shape
+    # is_avoided = True #avoidance state
+
+    # sendCommands(tello, senOut, cx)
+
+    # # visualize progress
+    # cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
+    # imgCount = imgCount + 1
+    # # cv2.imshow("Thres", imgThres)
+
+    return [0,True]
+
+      
 
 def deinit():
     """
@@ -237,5 +241,5 @@ if __name__ == "__main__":
     time.sleep(3)
 
     init(tello)
-    avoidObstacles(tello)
+    _avoidObstacles(tello)
     deinit()
