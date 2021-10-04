@@ -165,6 +165,7 @@ def getSensorOutput(imgThres, sensors):
         else:
             senOut.append(0)
         # cv2.imshow(str(x), im)
+        print(f"x is {x} totalpixels: {totalPixels}, pixelcount: {pixelCount}")
     print(f" sensor output is {senOut}")
 
     return senOut
@@ -222,6 +223,9 @@ def followLine(tello, cap=None):
     count_frames = 0  # count number of frames that have passed
     gotStream = False
 
+         
+    doi = 20 #how much to divide an image after threshold
+
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
             tello.land()
@@ -249,12 +253,19 @@ def followLine(tello, cap=None):
                 imgThres = thresholding(img)  # color image thresholding
             
             imgThres = cv2.resize(imgThres, (w, h)) #resize thres image
-            imgThres = imgThres[(imgThres.shape[0] - imgThres.shape[0] // 4):, :]        
+            imgThres = imgThres[(imgThres.shape[0] - imgThres.shape[0] // doi):, :]        
                
             # follow line
-            cx, area = getContours(imgThres, img)  # image translation
-            senOut = getSensorOutput(imgThres, sensors)
-            sendCommands(tello, senOut, cx)           
+            img = cv2.resize(img, (w, h)) # resize original image
+            img_part =  img[(img.shape[0] - img.shape[0] // doi):, :] 
+            cx, area = getContours(imgThres, img_part)  # image translation
+            img[(img.shape[0] - img.shape[0] // doi):, :]  = img_part # mark line follow on original image
+
+            if area == 0: #no yellow has been seen, move forward
+                tello.send_rc_control(0, 15, 0, 0)
+            else: #follow yellow
+                senOut = getSensorOutput(imgThres, sensors)
+                sendCommands(tello, senOut, cx)           
 
             # visualize progress
             # cv2.imshow("output", img)
@@ -303,16 +314,16 @@ if __name__ == '__main__':
         time.sleep(3)
         print("battery level is {}!".format(tello.get_battery()))
         
+        print(f"reading first video frame...")
+        img = tello.get_frame_read().frame #read first video frame
+        print(f"read first video frame!")
+        
     else:
         cap = cv2.VideoCapture(0)
 
     tello.send_rc_control(0, 0, 0, 0)
     tello.takeoff()
     time.sleep(1)
-
-    print(f"reading first video frame...")
-    img = tello.get_frame_read().frame #read first video frame
-    print(f"read first video frame!")
 
     init(tello)  # init line follow mission
     followLine(tello)  # start line following
