@@ -28,13 +28,21 @@ thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white 
 
 sensors = 3  # sensors in the image
 
-thresholdPixels = 0.2  # 20% threshold pixels
+thresholdPixels = 0.07  # 7% threshold pixels
 
-senstivity = 2  # sensitivity of motion change
+senstivity = 1.5  # sensitivity of motion change
 
 turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
 fspeed = 20  # forward speed
+
+offset_distance = 30 # distance in cm of drone from start of line
+
+frame_array = []
+
+g_flight_height = 20
+
+g_doi = 4
 
 
 def init(tello):
@@ -48,16 +56,18 @@ def init(tello):
         raise Exception('drone is not flying, can\'t start mission')
 
     # move to set height above the ground
-    flight_height = 70  # fly at this level above the ground
+    flight_height = g_flight_height  # fly at this level above the ground
 
     curr_height = tello.get_height()
 
     go_to_height_v = 0  # velocity for going to mission flight height
 
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 10
+        go_to_height_v = 20
     else:
-        go_to_height_v = -10
+        go_to_height_v = -20
+
+    tello.send_rc_control(0, 0, go_to_height_v, 0)
 
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
@@ -71,9 +81,24 @@ def init(tello):
             tello.send_rc_control(0, 0, 0, 0)
             break
 
-        tello.send_rc_control(0, 0, go_to_height_v, 0)
 
     print("Reached line following height of: {} cm".format(tello.get_height()))
+    
+    # approach_speed = 10
+    # tello.send_rc_control(0, approach_speed, 0, 0)   # go to beginning of line at 10cm/s
+    
+    # t_end = time.time() + offset_distance/approach_speed
+    # count = 0
+    # while time.time() < t_end: #loop for set second while saving frame
+
+    #     frame = tello.get_frame_read().frame
+    #     frame_array.append(frame) #save video frame to array
+    #     time.sleep(0.5)
+    #     # cv2.imshow("frame",frame)
+    #     # cv2.waitKey(1)
+    # print(f"length of array frame is {len(frame_array)}")
+
+
 
 
 def thresholding(img):
@@ -224,16 +249,19 @@ def followLine(tello, cap=None):
     gotStream = False
 
          
-    doi = 20 #how much to divide an image after threshold
+    doi = g_doi #how much to divide an image after threshold
 
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
             tello.land()
 
         if DRONECAM:
-            img = big_img = tello.get_frame_read().frame
-            frame_copy = copy.deepcopy(img) #deep copy frame for processing by object avoidance
+            frame = tello.get_frame_read().frame
+            frame_array.append(frame) #save video frame to array
 
+            img = big_img = frame_array.pop(0) #get image that was added first to run processing on it
+            frame_copy = copy.deepcopy(img) #deep copy frame for processing by object avoidance
+        
             if not FRONTCAM:
                 img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
                 cv2.imshow("output-0", img)
@@ -275,16 +303,16 @@ def followLine(tello, cap=None):
             imgCount = imgCount + 1
             # cv2.imshow("Thres", imgThres)
 
-            shape,is_avoided = am.avoidObstacles(tello,frame_copy) #check if there are objects to avoid
+            # shape,is_avoided = am.avoidObstacles(tello,frame_copy) #check if there are objects to avoid
 
-            if shape == am.obstacle_shapes["triangle"]:
-                # found the triangle,
-                # by this time the shape has already been avoided
+            # if shape == am.obstacle_shapes["triangle"]:
+            #     # found the triangle,
+            #     # by this time the shape has already been avoided
 
-                tello.send_rc_control(0, 0, 0, 0) #stop drone movement
-                break # mission finished, break from while loop
+            #     tello.send_rc_control(0, 0, 0, 0) #stop drone movement
+            #     break # mission finished, break from while loop
 
-            cv2.waitKey(1)
+            #cv2.waitKey(1)
         else:
             print("waiting stream...")
 
