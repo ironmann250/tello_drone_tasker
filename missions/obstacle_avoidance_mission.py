@@ -269,7 +269,7 @@ def avoidObstacles(tello,frame):
             avoided_shapes["circle"] = True
 
         else:
-            # this is a triangle
+            # this is a rectangle
             tello.move_right(20)
             tello.move_forward(20)
             tello.move_left(20)
