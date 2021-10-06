@@ -123,70 +123,12 @@ def track_object(drone,area,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
         ud=0
         errorUd = 0
         errorSpeed = 0
-    if printElapsed <= printDelay:
+    if time.time()-printElapsed <= printDelay:
         print(f'front/back :{fb}%, up/down: {-ud}%, yaw: {speed}&')
-        printElapsed=0
+        printElapsed=time.time()
     if not debug:
         drone.send_rc_control(0, fb, -ud, speed)
     return errorSpeed,errorUd
-
-
-def getSensorOutput(cx, area):
-    """
-    get sensor output
-
-    :param cx: center of found contour
-    :param area: of found contour
-    :return: senOut
-    """
-    imgs = np.hsplit(imgThres, sensors)
-    totalPixels = imgThres.shape[1] // sensors * imgThres.shape[0]
-    senOut = []
-    for x, im in enumerate(imgs):
-        pixelCount = cv2.countNonZero(im)
-        if pixelCount > thresholdPixels * totalPixels:
-            senOut.append(1)
-        else:
-            senOut.append(0)
-        # cv2.imshow(str(x), im)
-    print(senOut)
-
-    return senOut
-
-def sendCommands(tello, senOut, cx):
-    """
-    send commands to the tello drone
-
-    :param senOut: sensor output
-    :param cx: center of the detected yellow patch
-    :return: None
-    """
-    # Translation
-    lr = 0
-    ud = 0
-    fb = 0
-
-    motionspeed = 15
-
-    # Rotation
-    if senOut == "up":
-        ud = motionspeed
-    elif senOut == "down":
-        ud = -motionspeed
-    elif senOut == "forward":
-        fb = motionspeed
-    elif senOut == "backward":
-        fb = -motionspeed
-    elif senOut == "left":
-        lr = motionspeed
-    elif senOut == "right":
-        lr = -motionspeed
-
-    print(f"moving up/down:{ud}, forward/backward:{fb}, left/right:{lr}")
-
-    if DRONECAM:
-        #tello.send_rc_control(lr, fb, ud, 0)
-        _ = 0
 
 def _avoidObstacles(tello,cap=None):
     """
