@@ -54,6 +54,10 @@ if __name__ == '__main__':
     cx, area = getContours(img_thres, img_part)  # image translation
     img[(img.shape[0] - img.shape[0] // doi):, :]  = img_part # mark line follow on original image
 
+    img_part =  img[(img.shape[0] - img.shape[0] // doi):, :] 
+    cx, area = getContours(img_thres, img_part)  # image translation
+    img[(img.shape[0] - img.shape[0] // doi):, :]  = img_part # mark line follow on original image
+
 
     cv2.imshow("img", img)
     cv2.imshow("img part", img_part)
