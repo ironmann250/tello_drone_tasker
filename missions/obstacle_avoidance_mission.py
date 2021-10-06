@@ -218,7 +218,7 @@ def _avoidObstacles(tello,cap=None):
 
 def go_through_circle(tello):
     """ handles operation of going through the circle """
-    print("submission going through circle launched...")
+    print("sub mission going through circle launched...")
 
 
 imgCount = 0 #image count
