@@ -77,11 +77,11 @@ if __name__ == '__main__':
     image_cir = cv2.imread("./red_cir.png")
     image_rec = cv2.imread("./red_rec.png")
 
-    image = image_cir
+    image = image_rec
 
     cap = cv2.VideoCapture(0)
     while True:
-        _, image = cap.read()
+        #_, image = cap.read()
 
         thresImg = thresRed(image)
 
@@ -90,6 +90,6 @@ if __name__ == '__main__':
         cv2.imshow("Original", image)
         #cv2.imshow("thresholded", thresImg)
 
-        cv2.waitKey(1)
+        cv2.waitKey(0)
 
     cv2.destroyAllWindows()
