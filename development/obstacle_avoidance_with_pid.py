@@ -17,6 +17,9 @@ FRONTCAM = True  # get stream from front camera
 
 debug=False
 
+printDelay=0.1 #delay sec btn prints
+printElapsed=0
+
 if FRONTCAM:
     w, h = 360, 240  # width and height of video frame
 else:
@@ -103,8 +106,9 @@ def isEndMission(img):
     """check if there is a green ball to be followed in image"""
 
 def track_object(drone,area,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
-    x,y=cx
+    global printElapsed
 
+    x,y=cx
     errorSpeed = x - w // 2
     errorUd = y - h // 2
     speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
@@ -119,9 +123,11 @@ def track_object(drone,area,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
         ud=0
         errorUd = 0
         errorSpeed = 0
+    if printElapsed <= printDelay:
+        print(f'front/back :{fb}%, up/down: {-ud}%, yaw: {speed}&')
+        printElapsed=0
     if not debug:
         drone.send_rc_control(0, fb, -ud, speed)
-        #pass
     return errorSpeed,errorUd
 
 
@@ -231,7 +237,9 @@ def avoidObstacles(tello,frame):
 
     # shape = obstacle_shapes["none"] #get trype of shape
     # is_avoided = True #avoidance state
-
+    
+    printElapsed=time.time()
+    #call track_object
     # sendCommands(tello, senOut, cx)
 
     # # visualize progress
