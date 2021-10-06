@@ -64,27 +64,6 @@ def init(tello):
 
     print("Reached obstacle avoidance mission height of: {} cm".format(tello.get_height()))
 
-def getContours(imgThres, img, color=(255, 0, 255)):
-    """
-    :param imgThres: black and white image with target from thresholding function
-    :param img: colored image
-    :return:
-    """
-    cx = 0
-    area = 0
-    contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    if len(contours) != 0:
-        biggest = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(biggest)
-        cx = x + w // 2
-        cy = y + h // 2
-        area = w * h  # area of bounding box
-        cv2.drawContours(img, biggest, -1, color, 7)
-        cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
-
-    print(f"contour color: {color} center:{cx}, area:{area}")
-
-    return cx, area
 
 def thresRed(img):
     """for thresholding the red color from the color image"""
@@ -93,6 +72,57 @@ def thresRed(img):
     mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
     mask = mask1 | mask2
     return mask
+
+
+def getContours(imgThres, img, color=(255, 0, 255)):
+    """
+    :param imgThres: black and white image with target from thresholding function
+    :param img: colored image
+    :return:
+    """
+    cx = 0
+    area = 0
+    white_to_black_ratio = -1
+    contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if len(contours) != 0:
+        biggest = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(biggest)
+        cx = x + w // 2
+        cy = y + h // 2
+        area = w * h  # area of bounding box
+
+        if area < 10000: # threshold area for all shapes
+            return cx, area, white_to_black_ratio # if area is below thres return
+            
+        cv2.drawContours(img, biggest, -1, color, 7)
+        cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
+
+        # cut out the region of interest in the threshold
+        roi = imgThres[y:(y+h), x:(x+w)]
+        cv2.imshow("roi", roi)
+        total_white_of_roi = cv2.countNonZero(roi)
+
+        # get the  non white area inside the contour if any ie for cicle and triangle
+        contour_mask = np.zeros((thresImg.shape[0], thresImg.shape[1], 1), dtype="uint8")
+        cv2.fillConvexPoly(contour_mask, biggest, 255)
+        ret, contour_mask = cv2.threshold(contour_mask, 127, 255, cv2.THRESH_BINARY)
+        x, y, w, h = cv2.boundingRect(contour_mask)
+        roi_contour_mask = contour_mask[y:(y + h), x:(x + w)]
+        cv2.imshow("roi_contour_mask", roi_contour_mask)
+        # total_white_inside_contour = cv2.countNonZero(roi_contour_mask)
+
+        # black region inside region of interest
+        roi_black = roi_contour_mask-roi
+        black_inside_roi = cv2.countNonZero(roi_black)
+        print(f"white:{total_white_of_roi}, black: {black_inside_roi}")
+        cv2.imshow("black area", roi_black )
+
+        # get ratio
+        white_to_black_ratio = black_inside_roi/total_white_of_roi
+
+    print(f"contour color: {color} center:{cx}, area:{area}, white/black ratio: {white_to_black_ratio}")
+
+    return cx, area, white_to_black_ratio
 
 def isEndMission(img):
     """check if there is a green ball to be followed in image"""
@@ -185,34 +215,90 @@ def _avoidObstacles(tello,cap=None):
         else:
             print("waiting stream...")
 
+
+def go_through_circle(tello):
+    """ handles operation of going through the circle """
+    print("submission going through circle launched...")
+
+
 imgCount = 0 #image count
+
+avoided_shapes = { #shapes that have been avoided
+    "rectangle": False,
+    "circle": False,
+    "triangle": False
+} 
 
 def avoidObstacles(tello,frame):
     """
         initializing the obstacle avoidance, should be called after calling
         init()
     """
-    # print("obstacle avoidance launched...")
+    print("obstacle avoidance launched...")
 
-    # img = cv2.resize(frame, (w, h)) #resize image
+    img = cv2.resize(frame, (w, h)) #resize image
 
-    # imgThres = thresRed(img)  # color image thresholding
+    imgThres = thresRed(img)  # color image thresholding
 
-    # # avoid obstacles
-    # cx, area = getContours(imgThres, img)  # image translation
-    # senOut = getSensorOutput(cx, area)
+    # avoid obstacles
+    cx, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
-    # shape = obstacle_shapes["none"] #get trype of shape
-    # is_avoided = True #avoidance state
+    shape = obstacle_shapes["none"] #get trype of shape
+    is_avoided = False #avoidance state
 
-    # sendCommands(tello, senOut, cx)
+    #check if any red obstacle was detected
+    if white_to_black_ratio == -1:  # no red obstacle
+        return shape, is_avoided    # if no red obstacle return from here
+    elif white_to_black_ratio > 1:  # circle or triagle
+        if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
+            # this is a cirle
+            go_through_circle(tello) 
 
-    # # visualize progress
-    # cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
-    # imgCount = imgCount + 1
-    # # cv2.imshow("Thres", imgThres)
+             # by this time, we assume we have moved passed the triangle
+            shape = obstacle_shapes["circle"] #get trype of shape
+            is_avoided = True #avoidance state
+            avoided_shapes["circle"] = True
 
-    return [0,True]
+        elif avoided_shapes["rectangle"]  and not avoided_shapes["circle"] and not avoided_shapes["triangle"]:
+            # this is a cirle
+            go_through_circle(tello)
+
+            # by this time, we assume we have moved passed the triangle
+            shape = obstacle_shapes["circle"] #get trype of shape
+            is_avoided = True #avoidance state
+            avoided_shapes["circle"] = True
+
+        else:
+            # this is a triangle
+            tello.move_right(20)
+            tello.move_forward(20)
+            tello.move_left(20)
+
+             # by this time, we assume we have moved passed the triangle
+            shape = obstacle_shapes["triangle"] #get trype of shape
+            is_avoided = True #avoidance state
+            avoided_shapes["triangle"] = True
+
+    elif white_to_black_ratio < 1:  # rectangle detected, avoid it from the left side
+        tello.move_right(50)
+        tello.move_forward(20)
+        tello.move_left(50)
+
+        # by this time, we assume we have moved passed the rectangle
+        shape = obstacle_shapes["rectangle"] #get trype of shape
+        is_avoided = True #avoidance state
+        avoided_shapes["rectangle"] = True
+
+    senOut = getSensorOutput(cx, area) 
+
+    sendCommands(tello, senOut, cx)
+
+    # visualize progress
+    cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
+    imgCount = imgCount + 1
+    # cv2.imshow("Thres", imgThres)
+
+    return shape,is_avoided
 
       
 
