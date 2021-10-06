@@ -249,12 +249,12 @@ def avoidObstacles(tello,frame):
     #check if any red obstacle was detected
     if white_to_black_ratio == -1:  # no red obstacle
         return shape, is_avoided    # if no red obstacle return from here
-    elif white_to_black_ratio > 1:  # circle or triagle
+    elif white_to_black_ratio > 1:  # circle or triangle
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
             go_through_circle(tello) 
 
-             # by this time, we assume we have moved passed the triangle
+             # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
             is_avoided = True #avoidance state
             avoided_shapes["circle"] = True
@@ -263,7 +263,7 @@ def avoidObstacles(tello,frame):
             # this is a cirle
             go_through_circle(tello)
 
-            # by this time, we assume we have moved passed the triangle
+            # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
             is_avoided = True #avoidance state
             avoided_shapes["circle"] = True
