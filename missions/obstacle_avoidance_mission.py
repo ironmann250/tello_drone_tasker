@@ -27,6 +27,8 @@ obstacle_shapes = {
     "triangle": 3 
 }
 
+shape_area_thres = 100000 # 200000 thres for the real objects area
+
 def init(tello):
     """
         initializing the obstacle avoidance, should be called first before calling
@@ -91,7 +93,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         cy = y + h // 2
         area = w * h  # area of bounding box
 
-        if area < 10000: # threshold area for all shapes
+        if area < shape_area_thres: # threshold area for all shapes
             return cx, area, white_to_black_ratio # if area is below thres return
             
         cv2.drawContours(img, biggest, -1, color, 7)
@@ -193,7 +195,7 @@ def avoidObstacles(tello,frame):
     #check if any red obstacle was detected
     if white_to_black_ratio == -1:  # no red obstacle
         return shape, is_avoided    # if no red obstacle return from here
-    elif white_to_black_ratio > 1:  # circle or triangle
+    elif white_to_black_ratio > 1:  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
             go_through_circle(tello) 
