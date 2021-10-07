@@ -331,7 +331,7 @@ def avoidObstacles(tello,frame):
         #center drone to object
         put_object_in_center(tello, cx, cy)
 
-        #avoid object
+        #avoid object 
         tello.move_right(100)
         tello.move_forward(80)
         tello.move_left(100)
