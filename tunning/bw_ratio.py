@@ -1,6 +1,13 @@
 import numpy as np
 import cv2
 
+import sys
+
+#use the local dji tellopy
+sys.path.insert(0, './../')
+
+from djitellopy import tello
+
 def thresRed(img):
     """for thresholding the red color from the color image"""
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -73,15 +80,23 @@ def getContours(imgThres, img, color=(255, 0, 255)):
 
 
 if __name__ == '__main__':
+    tello = tello.Tello()
+    tello.connect()
+    
+    print("battery level is {}!".format(tello.get_battery()))
+
+    tello.streamon_front()
+
     image_tri = cv2.imread("./red_tri.png")
     image_cir = cv2.imread("./red_cir.png")
     image_rec = cv2.imread("./red_rec.png")
 
     image = image_rec
 
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
     while True:
-        _, image = cap.read()
+        # _, image = cap.read()
+        image = tello.get_frame_read().frame
 
         thresImg = thresRed(image)
 
