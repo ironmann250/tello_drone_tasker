@@ -105,7 +105,45 @@ def thresRed(img):
 def isEndMission(img):
     """check if there is a green ball to be followed in image"""
 
-def track_object(drone,area,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
+def track_object(drone,cx,cy,minError=2):
+    global printElapsed,w,h
+    pidSpeed,pidUd = ([0.4, 0.4, 0],[0.4, 0.4, 0])
+    pErrorSpeed, pErrorUd,minError=[0,0,5]
+
+    while (True):
+        x,y=[cx,cy]
+        errorSpeed = x - w // 2
+        errorUd = y - h // 2
+        speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
+        speed = int(np.clip(speed, -20, 20))
+        ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
+        ud = int(np.clip(ud, -20, 20))
+
+        #Todo: evaluate when to move forward
+        if x <= minError:
+            speed = 0
+            fb=0#test positive val from evaluation func
+            ud=0
+            errorUd = 0
+            errorSpeed = 0
+            break
+        if time.time()-printElapsed <= printDelay:
+            print(f'up/down: {-ud}%, left/right: {speed}&')
+            printElapsed=time.time()
+        if not debug:
+            drone.send_rc_control(speed, 0, -ud, 0)
+  
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(img, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+
+
+def center_object(drone,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
     global printElapsed
 
     x,y=cx
@@ -127,7 +165,7 @@ def track_object(drone,area,cx,w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd):
         print(f'front/back :{fb}%, up/down: {-ud}%, yaw: {speed}&')
         printElapsed=time.time()
     if not debug:
-        drone.send_rc_control(0, fb, -ud, speed)
+        drone.send_rc_control(speed, 0, -ud, speed)
     return errorSpeed,errorUd
 
 def _avoidObstacles(tello,cap=None):

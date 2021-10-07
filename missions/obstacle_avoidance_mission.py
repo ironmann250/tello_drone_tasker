@@ -201,7 +201,7 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
             ud = 0
 
         # move to center of circle
-        tello.send_rc_control(0, 15, ud, lr)
+        tello.send_rc_control(0, 15, ud+5, lr)
 
         # getting another frame
         img = tello.get_frame_read().frame
@@ -251,7 +251,7 @@ def put_object_in_center(tello, cx, cy):
             tello.send_rc_control(0, 0, 0, 0)
             break
 
-        tello.send_rc_control(0, 0, ud, lr)
+        tello.send_rc_control(lr, 0, ud, 0) #Notice left right is the first item in the array
 
         # getting another frame
         img = tello.get_frame_read().frame
@@ -262,6 +262,45 @@ def put_object_in_center(tello, cx, cy):
 
         # track center
         cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+
+def pid_center_object(drone,cx,cy,minError=2):
+    global printElapsed,w,h
+    pidSpeed,pidUd = ([0.4, 0.4, 0],[0.4, 0.4, 0])
+    pErrorSpeed, pErrorUd,minError=[0,0,5]
+    printElapsed=0
+    debug=False
+    while (True):
+        x,y=[cx,cy]
+        errorSpeed = x - w // 2
+        errorUd = y - h // 2
+        speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
+        speed = int(np.clip(speed, -20, 20))
+        ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
+        ud = int(np.clip(ud, -20, 20))
+
+        #Todo: evaluate when to move forward
+        if x <= minError:
+            speed = 0
+            fb=0#test positive val from evaluation func
+            ud=0
+            errorUd = 0
+            errorSpeed = 0
+            break
+        if time.time()-printElapsed <= 0.1:
+            print(f'up/down: {-ud}%, left/right: {speed}%')
+            printElapsed=time.time()
+        if not debug:
+            drone.send_rc_control(speed, 0, -ud, 0)
+  
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(img, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+
 
 avoided_shapes = { #shapes that have been avoided
     "rectangle": False,
