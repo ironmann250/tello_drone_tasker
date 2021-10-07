@@ -28,9 +28,9 @@ obstacle_shapes = {
 }
 
 
-shape_area_thres = 200000 # 200000 thres for the real objects area
+shape_area_thres = 40000 # 200000 thres for the real objects area
 
-g_flight_height = 150 # height o find objects to avoid
+g_flight_height = 140 # height o find objects to avoid
 
 senstivity = 2
 
@@ -168,13 +168,13 @@ def _avoidObstacles(tello,cap=None):
             _, img = cap.read()
             print("got web cam stream")
 
-        if gotStream:
-
-            tello.send_rc_control(0, forward_speed, 0, 0)   #moving forward
+        if gotStream:            
 
             shape, is_avoided = avoidObstacles(tello, img)
             print(f"detected shape: {shape}")
             cv2.waitKey(1)
+
+            tello.send_rc_control(0, forward_speed, 0, 0)   #moving forward
         else:
             print("waiting stream...")
 
@@ -194,7 +194,7 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
             lr = 0
         
         # moving up and down
-        ud = (cy - (h+100) // 2) // senstivity
+        ud = (cy - (h) // 2) // senstivity
         print(f"oam ud is {ud}")
         ud = int(np.clip(ud, -25, 25))
         if ud < 2 and ud > -2:
@@ -311,6 +311,9 @@ avoided_shapes = { #shapes that have been avoided
 
 imgCount = 0 #image count
 
+
+ob_ratio_thre = 0.35 #threshold for shapes
+
 def avoidObstacles(tello,frame):
 
     """
@@ -335,7 +338,7 @@ def avoidObstacles(tello,frame):
     #check if any red obstacle was detected
     if white_to_black_ratio == -1:  # no red obstacle
         return shape, is_avoided    # if no red obstacle return from here
-    elif white_to_black_ratio > 1:  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
+    elif white_to_black_ratio >= ob_ratio_thre:  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
             go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy)
@@ -359,24 +362,24 @@ def avoidObstacles(tello,frame):
             put_object_in_center(tello, cx, cy)
 
             # this is a triangle
-            tello.move_right(100)
-            tello.move_forward(140)
-            tello.move_left(100)
+            tello.move_up(50)
+            tello.move_forward(150)
+            tello.move_down(50)
 
              # by this time, we assume we have moved passed the triangle
             shape = obstacle_shapes["triangle"] #get trype of shape
             is_avoided = True #avoidance state
             avoided_shapes["triangle"] = True
 
-    elif white_to_black_ratio < 1:  # rectangle detected, avoid it from the left side
+    elif white_to_black_ratio < ob_ratio_thre:  # rectangle detected, avoid it from the left side
 
         #center drone to object
         put_object_in_center(tello, cx, cy)
 
         #avoid object 
-        tello.move_right(100)
-        tello.move_forward(100)
-        tello.move_left(100)
+        tello.move_up(50)
+        tello.move_forward(150)
+        tello.move_down(50)
 
         # by this time, we assume we have moved passed the rectangle
         shape = obstacle_shapes["rectangle"] #get trype of shape
@@ -389,6 +392,9 @@ def avoidObstacles(tello,frame):
     imgCount = imgCount + 1
     cv2.imshow("Thres", imgThres)
     cv2.imshow("img", img)
+
+    if avoided_shapes["rectangle"] and avoided_shapes["circle"]: # to be able to see the triangle clearly
+        shape_area_thres = 20000
 
     return shape, is_avoided
 
