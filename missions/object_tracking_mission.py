@@ -26,6 +26,8 @@ pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
 pErrorUd = 0
+endTargetCount=0
+endTargetLimits=10
 
 ### color thresholding ###
 #lower = np.array([137,80,180])#h_min,s_min,v_min
@@ -167,6 +169,18 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
         #pass
     return [errorSpeed,errorUd]
 
+def isEndMission(img):
+    has_target_thres=False
+
+    if has_target_thres:
+        endTargetCount=+1
+
+    if endTargetCount >= endTargetLimits:
+        return True
+    else:
+        return False
+    """check if there is a green ball to be followed in image"""
+
 def trackObject(tello):
     global cap,w,h,pErrorSpeed,pErrorUd
     """
@@ -207,6 +221,8 @@ def trackObject(tello):
         imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
         img, info = getContours(imgDil , imgContour)
         pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
+        if isEndMission:
+            break
         #print("Area", info[1], "Center", info[1])
         cv2.imshow("output", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
