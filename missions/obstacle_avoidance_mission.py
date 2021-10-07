@@ -28,9 +28,9 @@ obstacle_shapes = {
 }
 
 
-shape_area_thres = 50000 # 200000 thres for the real objects area
+shape_area_thres = 200000 # 200000 thres for the real objects area
 
-g_flight_height = 140 # height o find objects to avoid
+g_flight_height = 150 # height o find objects to avoid
 
 senstivity = 2
 
@@ -189,24 +189,24 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
         # turning left and right
         lr = (cx - w // 2) // senstivity
         print(f"oam lr is {lr}")
-        lr = int(np.clip(lr, -100, 100))
+        lr = int(np.clip(lr, -25, 25))
         if lr < 2 and lr > -2:
             lr = 0
         
         # moving up and down
-        ud = (cy - h // 2) // senstivity
+        ud = (cy - (h+100) // 2) // senstivity
         print(f"oam ud is {ud}")
-        ud = int(np.clip(ud, -100, 100))
+        ud = int(np.clip(ud, -25, 25))
         if ud < 2 and ud > -2:
             ud = 0
 
         # move to center of circle
-        tello.send_rc_control(0, 15, ud+5, lr)
+        tello.send_rc_control(lr, 15, ud, 0)
 
         # getting another frame
         img = tello.get_frame_read().frame
 
-        img = cv2.resize(frame, (w, h)) #resize image
+        img = cv2.resize(img, (w, h)) #resize image
 
         imgThres = thresRed(img)  # color image thresholding
 
@@ -217,6 +217,7 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
     tello.send_rc_control(0, forward_speed, 0, 0)
 
 def put_object_in_center(tello, cx, cy):
+    # pid_center_object(tello,cx,cy,minError=2)
 
     global senstivity
 
@@ -230,22 +231,22 @@ def put_object_in_center(tello, cx, cy):
         ud = 0
         lr = 0
         # turning left and right
-        if not lock_lr:
-            lr = (cx - w // 2) // senstivity
-            print(f"oam lr is {lr}")
-            lr = int(np.clip(lr, -100, 100))
-            if lr < 2 and lr > -2:
-                lr = 0
-                lock_lr = True
+        #if not lock_lr:
+        lr = (cx - w // 2) // senstivity
+        print(f"oam lr is {lr}")
+        lr = int(np.clip(lr, -25, 25))
+        if lr < 20 and lr > -20:
+            lr = 0
+            lock_lr = True
         
         # moving up and down
-        if not lock_ud:
-            ud = (cy - h // 2) // senstivity
-            print(f"oam ud is {ud}")
-            ud = int(np.clip(ud, -100, 100))
-            if ud < 2 and ud > -2:
-                ud = 0
-                lock_ud = True
+        # if not lock_ud:
+        ud = (cy - h // 2) // senstivity
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -100, 100))
+        if ud < 20 and ud > -20:
+            ud = 0
+            lock_ud = True
 
         if lock_lr and lock_ud: #object centered
             tello.send_rc_control(0, 0, 0, 0)
@@ -290,7 +291,7 @@ def pid_center_object(drone,cx,cy,minError=2):
             print(f'up/down: {-ud}%, left/right: {speed}%')
             printElapsed=time.time()
         if not debug:
-            drone.send_rc_control(speed, 0, -ud, 0)
+            drone.send_rc_control(speed, 0, ud, 0)
   
         img = tello.get_frame_read().frame
 
@@ -312,12 +313,14 @@ imgCount = 0 #image count
 
 def avoidObstacles(tello,frame):
 
-    global imgCount
-
     """
         obstacle avoidance, should be called after calling
         init()
     """
+
+    global imgCount
+
+    print(f"avoided shapes {avoided_shapes}")
 
     img = cv2.resize(frame, (w, h)) #resize image
 
@@ -357,7 +360,7 @@ def avoidObstacles(tello,frame):
 
             # this is a triangle
             tello.move_right(100)
-            tello.move_forward(80)
+            tello.move_forward(140)
             tello.move_left(100)
 
              # by this time, we assume we have moved passed the triangle
@@ -372,7 +375,7 @@ def avoidObstacles(tello,frame):
 
         #avoid object 
         tello.move_right(100)
-        tello.move_forward(80)
+        tello.move_forward(100)
         tello.move_left(100)
 
         # by this time, we assume we have moved passed the rectangle
@@ -414,6 +417,6 @@ if __name__ == "__main__":
     tello.takeoff()
     time.sleep(3)
 
-    init(tello)
+    init(tello)  
     _avoidObstacles(tello)
     deinit()
