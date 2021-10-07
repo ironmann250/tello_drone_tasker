@@ -10,11 +10,11 @@ import keyPressModule as kp
 
  #### debug vals ###
 debug=False
-testTime=45
+testTime=60
 
 
 ### video & control vals ###
-startHeight,Herror=[80,2]
+startHeight,Herror=[50,5]
 waittime=0.5
 change=0
 timeWaited=0
@@ -49,7 +49,19 @@ def init(tello):
     """
     print("object tracking initializing...")
     if not debug:
+        
+        nostream=True
+        while nostream:
+            try:
+                myFrame = tello.get_frame_read().frame
+                myFrame=cv2.resize(myFrame,320,320)
+            except:
+                continue
+            nostream=False
+        
         tello.takeoff()
+        return
+        
         #go to starting height within error Herror
         while(abs(tello.get_height()-startHeight)>Herror):
             print (tello.get_height())
@@ -68,6 +80,14 @@ def get_mask(img,imgHsv,lower,upper): #
     result = cv2.bitwise_and(img,img, mask = mask)
     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR) 
     return mask  
+
+def thresRed(img):
+    """for thresholding the red color from the color image"""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+    return mask
 
 def getContours(img,imgContour):
     myObjectListData = []
@@ -125,6 +145,50 @@ def getContours(img,imgContour):
     else:
         return imgContour,[[0,0],0]
 
+def nonPIDtracking(me,info,w,h,imgContour):
+    global change,timeWaited,waitTime
+
+    area = info[1]
+    x, y = info[0]
+    fb = 0
+    sensitivity=2
+
+    errorSpeed = x - w // 2
+    errorUd = y - h // 2
+
+    speed = int(np.clip(errorSpeed//sensitivity, -100, 100))
+    ud = int(np.clip(errorUd//sensitivity, -20, 20))
+
+    if area > fbRange[0] and area < fbRange[1]:
+        fb = 0
+
+    if area > fbRange[1]:
+        fb = -20
+    elif area < fbRange[0] and area > 0:
+        fb = 20
+    
+    if (abs(errorSpeed) <= 20 and abs(errorUd) <=20):
+        timeWaited=time.time()-change
+        if True:#timeWaited>waitTime:
+            timeWaited=0
+            speed = 0
+            fb=0
+            ud=0
+            errorUd = 0
+            errorSpeed = 0
+    else:
+        change=time.time()
+        timeWaited=0
+
+    #print(speed, fb)
+    cv2.putText(imgContour, "LR: "+str(speed)+" FB: "+str(fb)+" UD: "+str(-ud),( 5, 200), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
+    cv2.putText(imgContour, "err LR: "+str(errorSpeed)+" err UD: "+str(x)+" tm wtd: "+str(timeWaited),( 5, 220), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
+    #time.sleep(0.5)
+    if not debug:
+        me.send_rc_control(0, fb, -ud, speed)
+    
+    
+
 def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     global change,timeWaited,waitTime
     area = info[1]
@@ -144,9 +208,8 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     if area > fbRange[1]:
         fb = -20
     elif area < fbRange[0] and area > 0:
-        fb = 20
-    
-    
+        fb = 20   
+
     if x == 0:
         timeWaited=time.time()-change
         if True:#timeWaited>waitTime:
@@ -169,7 +232,11 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
         #pass
     return [errorSpeed,errorUd]
 
-def isEndMission(img):
+def isEndMission(img,now):
+
+    if (time.time()-now)>=waittime:
+        return True
+
     has_target_thres=False
 
     if has_target_thres:
@@ -182,7 +249,7 @@ def isEndMission(img):
     """check if there is a green ball to be followed in image"""
 
 def trackObject(tello):
-    global cap,w,h,pErrorSpeed,pErrorUd
+    global cap,w,h,pErrorSpeed,pErrorUd,myFrame
     """
         initializing the object tracking, should be called after calling
         init()
@@ -203,12 +270,11 @@ def trackObject(tello):
             print(len(img))
             img = cv2.resize(img, (w, h))
         else:
-            myFrame = tello.get_frame_read().frame
             img = cv2.resize(myFrame, (w, h))
         imgContour = img.copy()
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
         
-        mask = cv2.inRange(imgHsv,lower,upper)
+        mask = thresRed(imgHsv)#cv2.inRange(imgHsv,lower,upper)
         result = cv2.bitwise_and(img,img, mask = mask)
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
@@ -220,8 +286,10 @@ def trackObject(tello):
         kernel = np.ones((5, 5))
         imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
         img, info = getContours(imgDil , imgContour)
-        pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
-        if isEndMission:
+        #pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
+        nonPIDtracking(tello, info, w,h,imgContour)
+        if isEndMission(img,now):
+            tello.land()
             break
         #print("Area", info[1], "Center", info[1])
         cv2.imshow("output", img)
@@ -247,19 +315,14 @@ if __name__ == "__main__":
 
         tello = tello.Tello()
         tello.connect()
-        time.sleep(1)
+        time.sleep(3)
 
         tello.streamon()
-        time.sleep(3)
+        time.sleep(10)
         
         print("battery level is {}".format(tello.get_battery()))
 
-        tello.send_rc_control(0, 0, 0, 0)
-
-
-
-    #tello.takeoff()
-    #time.sleep(3)
+        
     
     init(tello)
     trackObject(tello)

@@ -172,6 +172,12 @@ def _avoidObstacles(tello,cap=None):
             cv2.waitKey(1)
 
             tello.send_rc_control(0, forward_speed, 0, 0)   #moving forward
+
+            if shape == avoided_shapes["triangle"]:
+                print("reached end of mission")
+                tello.send_rc_control(0, 0, 0, 0)   #moving forward
+                tello.land()
+
         else:
             print("waiting stream...")
 
