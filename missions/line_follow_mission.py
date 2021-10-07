@@ -61,25 +61,27 @@ def init(tello):
     curr_height = tello.get_height()
 
     go_to_height_v = 0  # velocity for going to mission flight height
-
-    if (flight_height - curr_height) > 0:
-        go_to_height_v = 10
+    diff  = flight_height - curr_height
+    if (diff) > 0:
+        go_to_height_v = approach_speed
+        tello.move_up(diff)
     else:
-        go_to_height_v = -10
+        go_to_height_v = -approach_speed
+        tello.move_down(-diff)
 
-    tello.send_rc_control(0, 0, go_to_height_v, 0)
+    # tello.send_rc_control(0, 0, go_to_height_v, 0)
 
-    while True:
-        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
-            tello.land()
+    # while True:
+    #     if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+    #         tello.land()
 
-        curr_height = tello.get_height()
+    #     curr_height = tello.get_height()
 
-        print(f'flying at {curr_height}cm')
+    #     print(f'flying at {curr_height}cm')
 
-        if curr_height == flight_height:
-            tello.send_rc_control(0, 0, 0, 0)
-            break
+    #     if curr_height == flight_height:
+    #         tello.send_rc_control(0, 0, 0, 0)
+    #         break
 
 
     print("Reached line following height of: {} cm".format(tello.get_height()))
@@ -97,7 +99,6 @@ def init(tello):
     #     # cv2.imshow("frame",frame)
     #     # cv2.waitKey(1)
     # print(f"length of array frame is {len(frame_array)}")
-
 
 
 
