@@ -27,11 +27,14 @@ obstacle_shapes = {
     "triangle": 3 
 }
 
-shape_area_thres = 100000 # 200000 thres for the real objects area
 
-g_flight_height = 70 # height o find objects to avoid
+shape_area_thres = 70000 # 200000 thres for the real objects area
 
-sensitivity = 2
+g_flight_height = 90 # height o find objects to avoid
+
+senstivity = 2
+
+approach_speed = 20
 
 def init(tello):
     """
@@ -50,9 +53,9 @@ def init(tello):
 
     go_to_height_v = 0  # velocity for going to mission flight height
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 10
+        go_to_height_v = approach_speed
     else:
-        go_to_height_v = -10
+        go_to_height_v = -approach_speed
 
     
     tello.send_rc_control(0, 0, go_to_height_v, 0)
@@ -87,6 +90,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
     :return:
     """
     cx = 0
+    cy = 0
     area = 0
     white_to_black_ratio = -1
     contours, hierachy = cv2.findContours(imgThres, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -98,7 +102,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         area = w * h  # area of bounding box
 
         if area < shape_area_thres: # threshold area for all shapes
-            return cx, area, white_to_black_ratio # if area is below thres return
+            return cx, cy, area, white_to_black_ratio # if area is below thres return
             
         cv2.drawContours(img, biggest, -1, color, 7)
         cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
@@ -109,7 +113,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         total_white_of_roi = cv2.countNonZero(roi)
 
         # get the  non white area inside the contour if any ie for cicle and triangle
-        contour_mask = np.zeros((thresImg.shape[0], thresImg.shape[1], 1), dtype="uint8")
+        contour_mask = np.zeros((imgThres.shape[0], imgThres.shape[1], 1), dtype="uint8")
         cv2.fillConvexPoly(contour_mask, biggest, 255)
         ret, contour_mask = cv2.threshold(contour_mask, 127, 255, cv2.THRESH_BINARY)
         x, y, w, h = cv2.boundingRect(contour_mask)
@@ -141,7 +145,9 @@ def _avoidObstacles(tello,cap=None):
         init(), shouldn't be called outside this file
     """
     print("obstacle avoidance launched...")
-    while True:
+    
+    while True: 
+
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
             tello.land()
 
@@ -160,6 +166,9 @@ def _avoidObstacles(tello,cap=None):
             print("got web cam stream")
 
         if gotStream:
+
+            tello.send_rc_control(0, 10, 0, 0)   #moving forward
+
             shape, is_avoided = avoidObstacles(tello, img)
             print(f"detected shape: {shape}")
             cv2.waitKey(1)
@@ -171,7 +180,9 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
     """ handles operation of going through the circle """
     print("sub mission going through circle launched...")
 
-    while white_to_black_ratio not -1 # the ratio because -1 when we can't see the circle anymore
+    global senstivity
+
+    while white_to_black_ratio is not -1: # the ratio because -1 when we can't see the circle anymore
         # turning left and right
         lr = (cx - w // 2) // senstivity
         print(f"oam lr is {lr}")
@@ -199,9 +210,45 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
         # track center
         cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
     
+    # after locating center, continue going forward at a minimal speed
+    tello.send_rc_control(0, 15, 0, 0)
 
+def put_object_in_center(tello, cx, cy):
 
-imgCount = 0 #image count
+    global senstivity
+
+    tello.send_rc_control(0, 0, 0, 0)   #stop movement 
+
+    while True:
+        # turning left and right
+        lr = (cx - w // 2) // senstivity
+        print(f"oam lr is {lr}")
+        lr = int(np.clip(lr, -100, 100))
+        if lr < 2 and lr > -2:
+            lr = 0
+        
+        # moving up and down
+        ud = (cy - h // 2) // senstivity
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -100, 100))
+        if ud < 2 and ud > -2:
+            ud = 0
+
+        if ud == 0 and lr == 0: #object centered
+            tello.send_rc_control(0, 0, 0, 0)
+            break
+
+        tello.send_rc_control(0, 0, ud, lr)
+
+        # getting another frame
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(img, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
 avoided_shapes = { #shapes that have been avoided
     "rectangle": False,
@@ -209,12 +256,16 @@ avoided_shapes = { #shapes that have been avoided
     "triangle": False
 } 
 
+imgCount = 0 #image count
+
 def avoidObstacles(tello,frame):
+
+    global imgCount
+
     """
-        initializing the obstacle avoidance, should be called after calling
+        obstacle avoidance, should be called after calling
         init()
     """
-    print("obstacle avoidance launched...")
 
     img = cv2.resize(frame, (w, h)) #resize image
 
@@ -249,7 +300,7 @@ def avoidObstacles(tello,frame):
             avoided_shapes["circle"] = True
 
         else:
-            # this is a rectangle
+            # this is a triangle
             tello.move_right(20)
             tello.move_forward(20)
             tello.move_left(20)
@@ -260,9 +311,14 @@ def avoidObstacles(tello,frame):
             avoided_shapes["triangle"] = True
 
     elif white_to_black_ratio < 1:  # rectangle detected, avoid it from the left side
-        tello.move_right(50)
-        tello.move_forward(20)
-        tello.move_left(50)
+
+        #center drone to object
+        put_object_in_center(tello, cx, cy)
+
+        #avoid object
+        tello.move_right(100)
+        tello.move_forward(50)
+        tello.move_left(100)
 
         # by this time, we assume we have moved passed the rectangle
         shape = obstacle_shapes["rectangle"] #get trype of shape
@@ -270,9 +326,11 @@ def avoidObstacles(tello,frame):
         avoided_shapes["rectangle"] = True
 
     # visualize progress
+    print(f"count in oam is {imgCount}")
     cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
     imgCount = imgCount + 1
-    # cv2.imshow("Thres", imgThres)
+    cv2.imshow("Thres", imgThres)
+    cv2.imshow("img", img)
 
     return shape, is_avoided
 
