@@ -10,11 +10,11 @@ import keyPressModule as kp
 
  #### debug vals ###
 debug=False
-testTime=45
+testTime=60
 
 
 ### video & control vals ###
-startHeight,Herror=[80,10]
+startHeight,Herror=[50,5]
 waittime=0.5
 change=0
 timeWaited=0
@@ -49,7 +49,19 @@ def init(tello):
     """
     print("object tracking initializing...")
     if not debug:
+        
+        nostream=True
+        while nostream:
+            try:
+                myFrame = tello.get_frame_read().frame
+                myFrame=cv2.resize(myFrame,320,320)
+            except:
+                continue
+            nostream=False
+        
         tello.takeoff()
+        return
+        
         #go to starting height within error Herror
         while(abs(tello.get_height()-startHeight)>Herror):
             print (tello.get_height())
@@ -237,7 +249,7 @@ def isEndMission(img,now):
     """check if there is a green ball to be followed in image"""
 
 def trackObject(tello):
-    global cap,w,h,pErrorSpeed,pErrorUd
+    global cap,w,h,pErrorSpeed,pErrorUd,myFrame
     """
         initializing the object tracking, should be called after calling
         init()
@@ -258,7 +270,6 @@ def trackObject(tello):
             print(len(img))
             img = cv2.resize(img, (w, h))
         else:
-            myFrame = tello.get_frame_read().frame
             img = cv2.resize(myFrame, (w, h))
         imgContour = img.copy()
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
@@ -304,14 +315,14 @@ if __name__ == "__main__":
 
         tello = tello.Tello()
         tello.connect()
-        time.sleep(1)
+        time.sleep(3)
 
         tello.streamon()
-        time.sleep(1)
+        time.sleep(10)
         
         print("battery level is {}".format(tello.get_battery()))
 
-        tello.send_rc_control(0, 0, 0, 0)
+        
     
     init(tello)
     trackObject(tello)
