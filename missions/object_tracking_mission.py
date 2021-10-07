@@ -14,7 +14,7 @@ testTime=45
 
 
 ### video & control vals ###
-startHeight,Herror=[80,2]
+startHeight,Herror=[80,10]
 waittime=0.5
 change=0
 timeWaited=0
@@ -220,7 +220,11 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
         #pass
     return [errorSpeed,errorUd]
 
-def isEndMission(img):
+def isEndMission(img,now):
+
+    if (time.time()-now)>=waittime:
+        return True
+
     has_target_thres=False
 
     if has_target_thres:
@@ -273,7 +277,8 @@ def trackObject(tello):
         img, info = getContours(imgDil , imgContour)
         #pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
         nonPIDtracking(tello, info, w,h,imgContour)
-        if isEndMission:
+        if isEndMission(img,now):
+            tello.land()
             break
         #print("Area", info[1], "Center", info[1])
         cv2.imshow("output", img)
@@ -302,7 +307,7 @@ if __name__ == "__main__":
         time.sleep(1)
 
         tello.streamon()
-        time.sleep(3)
+        time.sleep(1)
         
         print("battery level is {}".format(tello.get_battery()))
 
