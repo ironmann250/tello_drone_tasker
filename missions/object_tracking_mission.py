@@ -125,6 +125,50 @@ def getContours(img,imgContour):
     else:
         return imgContour,[[0,0],0]
 
+def nonPIDtracking(me,info,w,h,imgContour):
+    global change,timeWaited,waitTime
+
+    area = info[1]
+    x, y = info[0]
+    fb = 0
+    sensitivity=2
+
+    errorSpeed = x - w // 2
+    errorUd = y - h // 2
+
+    speed = int(np.clip(errorSpeed//sensitivity, -100, 100))
+    ud = int(np.clip(errorUd//sensitivity, -20, 20))
+
+    if area > fbRange[0] and area < fbRange[1]:
+        fb = 0
+
+    if area > fbRange[1]:
+        fb = -20
+    elif area < fbRange[0] and area > 0:
+        fb = 20
+    
+    if (abs(errorSpeed) <= 20 and abs(errorUd) <=20):
+        timeWaited=time.time()-change
+        if True:#timeWaited>waitTime:
+            timeWaited=0
+            speed = 0
+            fb=0
+            ud=0
+            errorUd = 0
+            errorSpeed = 0
+    else:
+        change=time.time()
+        timeWaited=0
+
+    #print(speed, fb)
+    cv2.putText(imgContour, "LR: "+str(speed)+" FB: "+str(fb)+" UD: "+str(-ud),( 5, 200), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
+    cv2.putText(imgContour, "err LR: "+str(errorSpeed)+" err UD: "+str(x)+" tm wtd: "+str(timeWaited),( 5, 220), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
+    #time.sleep(0.5)
+    if not debug:
+        me.send_rc_control(0, fb, -ud, speed)
+    
+    
+
 def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     global change,timeWaited,waitTime
     area = info[1]
@@ -144,9 +188,8 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     if area > fbRange[1]:
         fb = -20
     elif area < fbRange[0] and area > 0:
-        fb = 20
-    
-    
+        fb = 20   
+
     if x == 0:
         timeWaited=time.time()-change
         if True:#timeWaited>waitTime:
@@ -220,7 +263,8 @@ def trackObject(tello):
         kernel = np.ones((5, 5))
         imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
         img, info = getContours(imgDil , imgContour)
-        pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
+        #pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
+        nonPIDtracking(tello, info, w,h,imgContour)
         if isEndMission:
             break
         #print("Area", info[1], "Center", info[1])
