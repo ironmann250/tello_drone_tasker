@@ -36,9 +36,9 @@ turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
 fspeed = 20  # forward speed
 
-offset_distance = 30 # distance in cm of drone from start of line
+# offset_distance = 30 # distance in cm of drone from start of line
 
-frame_array = []
+# frame_array = []
 
 g_flight_height = 20
 
@@ -63,9 +63,9 @@ def init(tello):
     go_to_height_v = 0  # velocity for going to mission flight height
 
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 20
+        go_to_height_v = 10
     else:
-        go_to_height_v = -20
+        go_to_height_v = -10
 
     tello.send_rc_control(0, 0, go_to_height_v, 0)
 
