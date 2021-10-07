@@ -69,6 +69,14 @@ def get_mask(img,imgHsv,lower,upper): #
     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR) 
     return mask  
 
+def thresRed(img):
+    """for thresholding the red color from the color image"""
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask1 = cv2.inRange(hsv, np.array([0, 70, 50]), np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 70, 50]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+    return mask
+
 def getContours(img,imgContour):
     myObjectListData = []
     myObjectListC = []
@@ -251,7 +259,7 @@ def trackObject(tello):
         imgContour = img.copy()
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
         
-        mask = cv2.inRange(imgHsv,lower,upper)
+        mask = thresRed(imgHsv)#cv2.inRange(imgHsv,lower,upper)
         result = cv2.bitwise_and(img,img, mask = mask)
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
