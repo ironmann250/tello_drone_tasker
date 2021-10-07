@@ -29,6 +29,8 @@ obstacle_shapes = {
 
 shape_area_thres = 100000 # 200000 thres for the real objects area
 
+g_flight_height = 70 # height o find objects to avoid
+
 def init(tello):
     """
         initializing the obstacle avoidance, should be called first before calling
@@ -40,16 +42,18 @@ def init(tello):
         raise Exception('drone is not flying, can\'t start mission')
 
         # move to set height above the ground
-    flight_height = 40  # fly at this level above the ground
+    flight_height = g_flight_height  # fly at this level above the ground
 
     curr_height = tello.get_height()
 
     go_to_height_v = 0  # velocity for going to mission flight height
     if (flight_height - curr_height) > 0:
-        go_to_height_v = 20
+        go_to_height_v = 10
     else:
-        go_to_height_v = -20
+        go_to_height_v = -10
 
+    
+    tello.send_rc_control(0, 0, go_to_height_v, 0)
     while True:
         if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
             tello.land()
@@ -61,8 +65,6 @@ def init(tello):
         if curr_height == flight_height:
             tello.send_rc_control(0, 0, 0, 0)
             break
-
-        tello.send_rc_control(0, 0, go_to_height_v, 0)
 
     print("Reached obstacle avoidance mission height of: {} cm".format(tello.get_height()))
 
@@ -156,7 +158,8 @@ def _avoidObstacles(tello,cap=None):
             print("got web cam stream")
 
         if gotStream:
-            avoidObstacles(tello, img)
+            shape, is_avoided = avoidObstacles(tello, img)
+            print(f"detected shape: {shape}")
             cv2.waitKey(1)
         else:
             print("waiting stream...")
@@ -240,7 +243,7 @@ def avoidObstacles(tello,frame):
     imgCount = imgCount + 1
     # cv2.imshow("Thres", imgThres)
 
-    return shape,is_avoided
+    return shape, is_avoided
 
 
 def deinit():
@@ -260,7 +263,7 @@ if __name__ == "__main__":
     tello.streamon_front()
     time.sleep(3)
 
-    print("battery level is {}".format(tello.get_battery()))
+    print("battery level is {}!".format(tello.get_battery()))
 
     tello.send_rc_control(0, 0, 0, 0)
 
