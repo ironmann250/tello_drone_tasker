@@ -28,7 +28,7 @@ obstacle_shapes = {
 }
 
 
-shape_area_thres = 40000 # 200000 thres for the real objects area
+shape_area_thres = 50000 # 200000 thres for the real objects area
 
 g_flight_height = 140 # height o find objects to avoid
 
@@ -104,9 +104,6 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         cx = x + w // 2
         cy = y + h // 2
         area = w * h  # area of bounding box
-
-        if area < shape_area_thres: # threshold area for all shapes
-            return cx, cy, area, white_to_black_ratio # if area is below thres return
             
         cv2.drawContours(img, biggest, -1, color, 7)
         cv2.circle(img, (cx, cy), 10, (0, 255,), cv2.FILLED)
@@ -168,7 +165,7 @@ def _avoidObstacles(tello,cap=None):
             _, img = cap.read()
             print("got web cam stream")
 
-        if gotStream:            
+        if gotStream:         
 
             shape, is_avoided = avoidObstacles(tello, img)
             print(f"detected shape: {shape}")
@@ -186,6 +183,10 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
     global senstivity
 
     while white_to_black_ratio is not -1: # the ratio because -1 when we can't see the circle anymore
+        
+        ud = 0
+        lr = 0
+
         # turning left and right
         lr = (cx - w // 2) // senstivity
         print(f"oam lr is {lr}")
@@ -194,11 +195,11 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
             lr = 0
         
         # moving up and down
-        ud = (cy - (h) // 2) // senstivity
-        print(f"oam ud is {ud}")
-        ud = int(np.clip(ud, -25, 25))
-        if ud < 2 and ud > -2:
-            ud = 0
+        # ud = (cy - (h) // 2) // senstivity
+        # print(f"oam ud is {ud}")
+        # ud = int(np.clip(ud, -25, 25))
+        # if ud < 2 and ud > -2:
+        #     ud = 0
 
         # move to center of circle
         tello.send_rc_control(lr, 15, ud, 0)
@@ -215,6 +216,28 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
     
     # after locating center, continue going forward at a minimal speed
     tello.send_rc_control(0, forward_speed, 0, 0)
+
+
+def center_to_red(tello,cx,cy):
+    ud = 0
+    lr = 0
+    # turning left and right
+    #if not lock_lr:
+    lr = (cx - w // 2) // senstivity
+    print(f"ctr lr is {lr}")
+    lr = int(np.clip(lr, -25, 25))
+    if lr < 2 and lr > -2:
+        lr = 0
+    
+    # moving up and down
+    # if not lock_ud:
+    # ud = (cy - h // 2) // senstivity
+    # print(f"ctr ud is {ud}")
+    # ud = int(np.clip(ud, -25, 25))
+    # if ud < 2 and ud > -2:
+    #     ud = 0
+
+    tello.send_rc_control(lr, 0, ud, 0) #Notice left right is the first item in the array
 
 def put_object_in_center(tello, cx, cy):
     # pid_center_object(tello,cx,cy,minError=2)
@@ -235,16 +258,16 @@ def put_object_in_center(tello, cx, cy):
         lr = (cx - w // 2) // senstivity
         print(f"oam lr is {lr}")
         lr = int(np.clip(lr, -25, 25))
-        if lr < 20 and lr > -20:
+        if lr < 5 and lr > -5:
             lr = 0
             lock_lr = True
         
         # moving up and down
         # if not lock_ud:
-        ud = (cy - h // 2) // senstivity
-        print(f"oam ud is {ud}")
-        ud = int(np.clip(ud, -100, 100))
-        if ud < 20 and ud > -20:
+        # ud = (cy - h // 2) // senstivity
+        # print(f"oam ud is {ud}")
+        # ud = int(np.clip(ud, -25, 25))
+        if ud < 5 and ud > -5:
             ud = 0
             lock_ud = True
 
@@ -314,6 +337,10 @@ imgCount = 0 #image count
 
 ob_ratio_thre = 0.35 #threshold for shapes
 
+circle_area_thres = 10000
+
+rect_area_thres = 70000
+
 def avoidObstacles(tello,frame):
 
     """
@@ -332,13 +359,15 @@ def avoidObstacles(tello,frame):
     # avoid obstacles
     cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
+    center_to_red(tello, cx, cy)
+
     shape = obstacle_shapes["none"] #get trype of shape
     is_avoided = False #avoidance state
 
     #check if any red obstacle was detected
     if white_to_black_ratio == -1:  # no red obstacle
         return shape, is_avoided    # if no red obstacle return from here
-    elif white_to_black_ratio >= ob_ratio_thre:  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
+    elif (white_to_black_ratio >= ob_ratio_thre) and (area>=circle_area_thres):  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
             go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy)
@@ -371,7 +400,7 @@ def avoidObstacles(tello,frame):
             is_avoided = True #avoidance state
             avoided_shapes["triangle"] = True
 
-    elif white_to_black_ratio < ob_ratio_thre:  # rectangle detected, avoid it from the left side
+    elif (white_to_black_ratio < ob_ratio_thre) and (area>=rect_area_thres):  # rectangle detected, avoid it from the left side
 
         #center drone to object
         put_object_in_center(tello, cx, cy)
@@ -386,15 +415,13 @@ def avoidObstacles(tello,frame):
         is_avoided = True #avoidance state
         avoided_shapes["rectangle"] = True
 
+
     # visualize progress
     print(f"count in oam is {imgCount}")
     cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
     imgCount = imgCount + 1
     cv2.imshow("Thres", imgThres)
     cv2.imshow("img", img)
-
-    if avoided_shapes["rectangle"] and avoided_shapes["circle"]: # to be able to see the triangle clearly
-        shape_area_thres = 20000
 
     return shape, is_avoided
 
