@@ -312,11 +312,6 @@ if __name__ == "__main__":
         print("battery level is {}".format(tello.get_battery()))
 
         tello.send_rc_control(0, 0, 0, 0)
-
-
-
-    #tello.takeoff()
-    #time.sleep(3)
     
     init(tello)
     trackObject(tello)

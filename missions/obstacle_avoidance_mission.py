@@ -167,7 +167,7 @@ def _avoidObstacles(tello,cap=None):
         else:
             _, img = cap.read()
             print("got web cam stream")
-
+    
         if gotStream:
 
             tello.send_rc_control(0, forward_speed, 0, 0)   #moving forward
@@ -326,7 +326,7 @@ def avoidObstacles(tello,frame):
     # avoid obstacles
     cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
-    shape = obstacle_shapes["none"] #get trype of shape
+    shape = obstacle_shapes["none"] #get type of shape
     is_avoided = False #avoidance state
 
     #check if any red obstacle was detected
