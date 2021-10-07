@@ -28,9 +28,9 @@ obstacle_shapes = {
 }
 
 
-shape_area_thres = 70000 # 200000 thres for the real objects area
+shape_area_thres = 20000 # 200000 thres for the real objects area
 
-g_flight_height = 100 # height o find objects to avoid
+g_flight_height = 150 # height o find objects to avoid
 
 senstivity = 2
 
@@ -161,7 +161,7 @@ def _avoidObstacles(tello,cap=None):
                 img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
             print("got drone camera stream")
-            cv2.imshow("output-0", img)
+            cv2.imshow("camera view", img)
 
             gotStream = True
         else:
