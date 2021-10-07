@@ -28,9 +28,9 @@ thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white 
 
 sensors = 3  # sensors in the image
 
-thresholdPixels = 0.07  # 7% threshold pixels
+thresholdPixels = 0.07  # 5% threshold pixels
 
-senstivity = 1.5  # sensitivity of motion change
+senstivity = 2  # sensitivity of motion change
 
 turnWeights = [-25, -15, 0, 15, 25]  # weights of motion direction
 curve = 0  # motion curve
@@ -42,8 +42,9 @@ fspeed = 20  # forward speed
 
 g_flight_height = 20
 
-g_doi = 4
+g_doi = 2
 
+approach_speed = 20
 
 def init(tello):
     """
@@ -257,10 +258,10 @@ def followLine(tello, cap=None):
             tello.land()
 
         if DRONECAM:
-            frame = tello.get_frame_read().frame
-            frame_array.append(frame) #save video frame to array
+            img = big_img = tello.get_frame_read().frame
+            # frame_array.append(frame) #save video frame to array
 
-            img = big_img = frame_array.pop(0) #get image that was added first to run processing on it
+            # img = big_img = frame_array.pop(0) #get image that was added first to run processing on it
             frame_copy = copy.deepcopy(img) #deep copy frame for processing by object avoidance
         
             if not FRONTCAM:
@@ -290,11 +291,11 @@ def followLine(tello, cap=None):
             cx, area = getContours(imgThres, img_part)  # image translation
             img[(img.shape[0] - img.shape[0] // doi):, :]  = img_part # mark line follow on original image
 
-            if area == 0: #no yellow has been seen, move forward
-                tello.send_rc_control(0, 15, 0, 0)
-            else: #follow yellow
-                senOut = getSensorOutput(imgThres, sensors)
-                sendCommands(tello, senOut, cx)           
+            # if area == 0: #no yellow has been seen, move forward
+            #     tello.send_rc_control(0, 15, 0, 0)
+            # else: #follow yellow
+            senOut = getSensorOutput(imgThres, sensors)
+            sendCommands(tello, senOut, cx)           
 
             # visualize progress
             # cv2.imshow("output", img)

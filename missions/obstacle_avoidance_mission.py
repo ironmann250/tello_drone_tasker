@@ -28,9 +28,9 @@ obstacle_shapes = {
 }
 
 
-shape_area_thres = 20000 # 200000 thres for the real objects area
+shape_area_thres = 50000 # 200000 thres for the real objects area
 
-g_flight_height = 150 # height o find objects to avoid
+g_flight_height = 140 # height o find objects to avoid
 
 senstivity = 2
 
@@ -222,22 +222,32 @@ def put_object_in_center(tello, cx, cy):
 
     tello.send_rc_control(0, 0, 0, 0)   #stop movement 
 
+    lock_ud = False
+    lock_lr = False
+
     while True:
+
+        ud = 0
+        lr = 0
         # turning left and right
-        lr = (cx - w // 2) // senstivity
-        print(f"oam lr is {lr}")
-        lr = int(np.clip(lr, -100, 100))
-        if lr < 2 and lr > -2:
-            lr = 0
+        if not lock_lr:
+            lr = (cx - w // 2) // senstivity
+            print(f"oam lr is {lr}")
+            lr = int(np.clip(lr, -100, 100))
+            if lr < 2 and lr > -2:
+                lr = 0
+                lock_lr = True
         
         # moving up and down
-        ud = (cy - h // 2) // senstivity
-        print(f"oam ud is {ud}")
-        ud = int(np.clip(ud, -100, 100))
-        if ud < 2 and ud > -2:
-            ud = 0
+        if not lock_ud:
+            ud = (cy - h // 2) // senstivity
+            print(f"oam ud is {ud}")
+            ud = int(np.clip(ud, -100, 100))
+            if ud < 2 and ud > -2:
+                ud = 0
+                lock_ud = True
 
-        if ud == 0 and lr == 0: #object centered
+        if lock_lr and lock_ud: #object centered
             tello.send_rc_control(0, 0, 0, 0)
             break
 
@@ -308,7 +318,7 @@ def avoidObstacles(tello,frame):
 
             # this is a triangle
             tello.move_right(100)
-            tello.move_forward(50)
+            tello.move_forward(80)
             tello.move_left(100)
 
              # by this time, we assume we have moved passed the triangle
@@ -323,7 +333,7 @@ def avoidObstacles(tello,frame):
 
         #avoid object
         tello.move_right(100)
-        tello.move_forward(50)
+        tello.move_forward(80)
         tello.move_left(100)
 
         # by this time, we assume we have moved passed the rectangle
