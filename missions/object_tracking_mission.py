@@ -10,18 +10,18 @@ import keyPressModule as kp
 
  #### debug vals ###
 debug=False
-testTime=60
+testTime=3600
 
 
 ### video & control vals ###
-startHeight,Herror=[50,5]
+startHeight,Herror=[60,5]
 waittime=0.5
 change=0
 timeWaited=0
 multiplier=1
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
-fbRange = [10000*(multiplier*multiplier),20000*(multiplier*multiplier)]#[6200, 6800]
+fbRange = [30000*(multiplier*multiplier),9000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
@@ -34,10 +34,10 @@ endTargetLimits=10
 #upper = np.array([179,255,255])#h_max,s_max,v_max
 #lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
 #upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
-#lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
-#upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
-lower = np.array([0,241,0])#red h_min,s_min,v_min
-upper = np.array([2,255,255])#red
+lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
+upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
+#lower = np.array([0,241,0])#red h_min,s_min,v_min
+#upper = np.array([2,255,255])#red
 #lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
 #upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
 
@@ -51,16 +51,19 @@ def init(tello):
     if not debug:
         
         nostream=True
-        while nostream:
-            try:
-                myFrame = tello.get_frame_read().frame
-                myFrame=cv2.resize(myFrame,320,320)
-            except:
-                continue
-            nostream=False
+        # while nostream:
+        #     try:
+        #         myFrame = tello.get_frame_read().frame
+        #         myFrame=cv2.resize(myFrame,320,320)
+        #     except:
+        #         continue
+        #     nostream=False
+    
+        myFrame = tello.get_frame_read().frame
+        #myFrame=cv2.resize(myFrame,320,320)
         
         tello.takeoff()
-        return
+        
         
         #go to starting height within error Herror
         while(abs(tello.get_height()-startHeight)>Herror):
@@ -114,6 +117,7 @@ def getContours(img,imgContour):
         i = myObjectListArea.index(max(myObjectListArea))
         cv2.circle(imgContour, myObjectListC[i], 5, (0, 255, 0), cv2.FILLED)
         x,y,w,h,approx=myObjectListData[i]
+        print(myObjectListArea[i])
         cv2.rectangle(imgContour, (x , y ), (x + w , y + h ), (0, 255, 0), 5)
 
         cv2.putText(imgContour, "Points: " + str(len(approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
@@ -233,7 +237,8 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     return [errorSpeed,errorUd]
 
 def isEndMission(img,now):
-
+    global endTargetCount,endTargetLimits
+    return False
     if (time.time()-now)>=waittime:
         return True
 
@@ -270,11 +275,12 @@ def trackObject(tello):
             print(len(img))
             img = cv2.resize(img, (w, h))
         else:
+            myFrame = tello.get_frame_read().frame
             img = cv2.resize(myFrame, (w, h))
         imgContour = img.copy()
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
         
-        mask = thresRed(imgHsv)#cv2.inRange(imgHsv,lower,upper)
+        mask =cv2.inRange(imgHsv,lower,upper)
         result = cv2.bitwise_and(img,img, mask = mask)
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
@@ -286,8 +292,8 @@ def trackObject(tello):
         kernel = np.ones((5, 5))
         imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
         img, info = getContours(imgDil , imgContour)
-        #pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
-        nonPIDtracking(tello, info, w,h,imgContour)
+        pErrorSpeed,pErrorUd = trackObj(tello, info, w,h, pidSpeed, pErrorSpeed,pidUd,pErrorUd,imgContour)
+        #nonPIDtracking(tello, info, w,h,imgContour)
         if isEndMission(img,now):
             tello.land()
             break
@@ -315,10 +321,10 @@ if __name__ == "__main__":
 
         tello = tello.Tello()
         tello.connect()
-        time.sleep(3)
+        time.sleep(1)
 
-        tello.streamon()
-        time.sleep(10)
+        tello.streamon_front()
+        time.sleep(1)
         
         print("battery level is {}".format(tello.get_battery()))
 
