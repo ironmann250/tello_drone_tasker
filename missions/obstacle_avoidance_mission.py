@@ -251,7 +251,7 @@ def put_object_in_center(tello, cx, cy):
             tello.send_rc_control(0, 0, 0, 0)
             break
 
-        tello.send_rc_control(0, 0, ud, lr) #Notice left right is the first item in the array
+        tello.send_rc_control(lr, 0, ud, 0) #Notice left right is the first item in the array
 
         # getting another frame
         img = tello.get_frame_read().frame
