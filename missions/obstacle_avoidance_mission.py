@@ -31,6 +31,8 @@ shape_area_thres = 100000 # 200000 thres for the real objects area
 
 g_flight_height = 70 # height o find objects to avoid
 
+sensitivity = 2
+
 def init(tello):
     """
         initializing the obstacle avoidance, should be called first before calling
@@ -126,7 +128,7 @@ def getContours(imgThres, img, color=(255, 0, 255)):
 
     print(f"contour color: {color} center:{cx}, area:{area}, white/black ratio: {white_to_black_ratio}")
 
-    return cx, area, white_to_black_ratio
+    return cx, cy, area, white_to_black_ratio
 
 def isEndMission(img):
     """check if there is a green ball to be followed in image"""
@@ -165,9 +167,38 @@ def _avoidObstacles(tello,cap=None):
             print("waiting stream...")
 
 
-def go_through_circle(tello):
+def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
     """ handles operation of going through the circle """
     print("sub mission going through circle launched...")
+
+    while white_to_black_ratio not -1 # the ratio because -1 when we can't see the circle anymore
+        # turning left and right
+        lr = (cx - w // 2) // senstivity
+        print(f"oam lr is {lr}")
+        lr = int(np.clip(lr, -100, 100))
+        if lr < 2 and lr > -2:
+            lr = 0
+        
+        # moving up and down
+        ud = (cy - h // 2) // senstivity
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -100, 100))
+        if ud < 2 and ud > -2:
+            ud = 0
+
+        # move to center of circle
+        tello.send_rc_control(0, 15, ud, lr)
+
+        # getting another frame
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(frame, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+    
 
 
 imgCount = 0 #image count
@@ -190,7 +221,7 @@ def avoidObstacles(tello,frame):
     imgThres = thresRed(img)  # color image thresholding
 
     # avoid obstacles
-    cx, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+    cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
     shape = obstacle_shapes["none"] #get trype of shape
     is_avoided = False #avoidance state
@@ -201,7 +232,7 @@ def avoidObstacles(tello,frame):
     elif white_to_black_ratio > 1:  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
-            go_through_circle(tello) 
+            go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy)
 
              # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
@@ -210,7 +241,7 @@ def avoidObstacles(tello,frame):
 
         elif avoided_shapes["rectangle"]  and not avoided_shapes["circle"] and not avoided_shapes["triangle"]:
             # this is a cirle
-            go_through_circle(tello)
+            go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy)
 
             # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
