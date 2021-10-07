@@ -53,19 +53,19 @@ def getContours(imgThres, img, color=(255, 0, 255)):
         # get ratio
         white_to_black_ratio = black_inside_roi/total_white_of_roi
 
-        # check of element in roi is circular
-        circles = cv2.HoughCircles(roi, cv2.HOUGH_GRADIENT, 1, 20,
-                                  param1=50, param2=30, minRadius=100, maxRadius=0)
-        if circles is not None:
-            is_circular = True
-            for i in circles[0, :]:
-                # draw the outer circle
-                cv2.circle(roi, (i[0], i[1]), i[2], (0, 255, 0), 2)
-                # draw the center of the circle
-                cv2.circle(roi, (i[0], i[1]), 2, (0, 0, 255), 3)
-            cv2.imshow('detected circles', roi)
-        else:
-            is_circular = False
+        # # check of element in roi is circular
+        # circles = cv2.HoughCircles(roi, cv2.HOUGH_GRADIENT, 1, 20,
+        #                           param1=50, param2=30, minRadius=100, maxRadius=0)
+        # if circles is not None:
+        #     is_circular = True
+        #     for i in circles[0, :]:
+        #         # draw the outer circle
+        #         cv2.circle(roi, (i[0], i[1]), i[2], (0, 255, 0), 2)
+        #         # draw the center of the circle
+        #         cv2.circle(roi, (i[0], i[1]), 2, (0, 0, 255), 3)
+        #     cv2.imshow('detected circles', roi)
+        # else:
+        #     is_circular = False
 
     print(f"contour color: {color} center:{cx}, area:{area}, white/black ratio: {white_to_black_ratio}")
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     cap = cv2.VideoCapture(0)
     while True:
-        #_, image = cap.read()
+        _, image = cap.read()
 
         thresImg = thresRed(image)
 
@@ -90,6 +90,6 @@ if __name__ == '__main__':
         cv2.imshow("Original", image)
         #cv2.imshow("thresholded", thresImg)
 
-        cv2.waitKey(0)
+        cv2.waitKey(1)
 
     cv2.destroyAllWindows()
