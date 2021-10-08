@@ -1,6 +1,5 @@
 import sys
 
-from numpy.lib.shape_base import get_array_wrap
 #use the local dji tellopy
 sys.path.insert(0, './../')
 
@@ -11,44 +10,51 @@ import numpy as np
 
 import keyPressModule as kp
 
-DRONECAM = True  # using drone or computer cam
 
-FRONTCAM = True  # get stream from front camera
 
-if FRONTCAM:
-    w, h = 360, 240  # width and height of video frame
-else:
-    w, h = 321, 240  # width and height of video frame
+w, h = 360, 240  # width and height of video frame
 
-obstacle_shapes = {
+
+obstacle_shapes = { #the different shapes to avoid or go through
     "none": 0,
     "rectangle": 1,
     "circle": 2,
     "triangle": 3 
 }
 
+avoided_shapes = { #shapes that have been avoided
+    "rectangle": False,
+    "circle": False,
+    "triangle": False
+} 
 
-shape_area_thres = 50000 # 200000 thres for the real objects area
 
 g_flight_height = 120 # height o find objects to avoid
 
-senstivity = 2
+senstivity = 2 # sensitivity of change in direction
 
-approach_speed = 20
+forward_speed = 20 # forward speed
+approach_speed = 20 # speed to approach mission flight height
 
-forward_speed = 20
+# threshold values
+tri_cir_area_thres = 10000
+rec_area_thres = 70000
+ob_ratio_thres = 0.3 #threshold for shapes
+
+imgCount = 0 #image count
+
 
 def init(tello):
     """
         initializing the obstacle avoidance, should be called first before calling
-        trackObject()
+        avoid_obstacle()
     """
     print("obstacle avoidance initializing...")
 
     if tello.is_flying is False:
         raise Exception('drone is not flying, can\'t start mission')
 
-        # move to set height above the ground
+    # move to set height above the ground
     flight_height = g_flight_height  # fly at this level above the ground
 
     curr_height = tello.get_height()
@@ -61,19 +67,6 @@ def init(tello):
     else:
         go_to_height_v = -approach_speed
         tello.move_down(-diff)
-
-    # tello.send_rc_control(0, 0, go_to_height_v, 0)
-    # while True:
-    #     if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
-    #         tello.land()
-
-    #     curr_height = tello.get_height()
-
-    #     print(f'flying at {curr_height}cm')
-
-    #     if curr_height == flight_height:
-    #         tello.send_rc_control(0, 0, 0, 0)
-    #         break
 
     print("Reached obstacle avoidance mission height of: {} cm".format(tello.get_height()))
 
@@ -135,72 +128,20 @@ def getContours(imgThres, img, color=(255, 0, 255)):
 
     return cx, cy, area, white_to_black_ratio
 
-def isEndMission(img):
-    """check if there is a green ball to be followed in image"""
 
-
-def _avoidObstacles(tello,cap=None):
-    """
-        initializing the obstacle avoidance, should be called after calling
-        init(), shouldn't be called outside this file
-    """
-    print("obstacle avoidance launched...")
-    
-    while True: 
-
-        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
-            tello.land()
-
-        if DRONECAM:
-            img = tello.get_frame_read().frame
-
-            if not FRONTCAM:
-                img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-
-            print("got drone camera stream")
-            cv2.imshow("camera view", img)
-
-            gotStream = True
-        else:
-            _, img = cap.read()
-            print("got web cam stream")
-
-        if gotStream:         
-
-            shape, is_avoided = avoidObstacles(tello, img)
-            print(f"detected shape: {shape}")
-            cv2.waitKey(1)
-
-            tello.send_rc_control(0, forward_speed, 0, 0)   #moving forward
-
-            if avoided_shapes["triangle"]:
-                print("reached end of mission")
-                tello.send_rc_control(0, 0, 0, 0)   #moving forward
-                tello.land()
-                break
-
-        else:
-            print("waiting stream...")
-
-
-def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy, area):
-    """ handles operation of going through the circle """
-    print("sub mission going through circle launched...")
-
-    global senstivity
-
+def center_still(tello):
+    """ centers without leaving current position"""
     ud = 1
     lr = 1
+    while ud and  lr:
+        img = tello.get_frame_read().frame
 
-    cx = cx
-    cy = cy
-    area =  area
-    white_to_black_ratio = white_to_black_ratio
+        img = cv2.resize(img, (w, h)) #resize image
 
-    while ud or lr: # the ratio because -1 when we can't see the circle anymore
-        
-        ud = 0
-        lr = 0
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
         # turning left and right
         lr = (cx - w // 2) // senstivity
@@ -210,15 +151,42 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy, area):
             lr = 0
         
         #moving up and down
-        ud = (cy - (h) // 2) // senstivity
+        ud = ((cy+30) - h // 2) // senstivity #offset the ud because the camera is abit pointing down
         print(f"oam ud is {ud}")
         ud = int(np.clip(ud, -25, 25))
         if ud < 2 and ud > -2:
             ud = 0
 
-        # move to center of circle
-        tello.send_rc_control(lr, 0, ud, 0)
+        tello.send_rc_control(lr, 0, -ud, 0)
 
+
+
+def go_through_circle(tello):
+    """ handles operation of going through the circle """
+    print("sub mission going through circle launched...")
+
+    global senstivity
+
+    img = tello.get_frame_read().frame
+
+    img = cv2.resize(img, (w, h)) #resize image
+
+    imgThres = thresRed(img)  # color image thresholding
+
+    # track center
+    cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+
+    prev_area = area
+
+    while True: # as long as the area is still big,we haven't moved past the circle
+
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+
+        if area > tri_cir_area_thres*4: # close enough to the circle
+            break
+        
         # getting another frame
         img = tello.get_frame_read().frame
 
@@ -228,90 +196,88 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy, area):
 
         # track center
         cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
-    
-        cv2.imshow("img",img)
+        if area > prev_area:
+            prev_area = area
 
-    # after locating center, continue going forward at a minimal speed
-    tello.move_forward(200)
-    tello.send_rc_control(0, forward_speed, 0, 0)
-
-
-def center_to_red(tello,cx,cy):
-
-    ud = 1
-    lr = 1
-
-    while ud and lr:
-
-        # getting another frame
-        img = tello.get_frame_read().frame
-
-        img = cv2.resize(img, (w, h)) #resize image
-
-        imgThres = thresRed(img)  # color image thresholding
-
-        # track center
-        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
-    
-
-        ud = 0
-        lr = 0
         # turning left and right
-        #if not lock_lr:
         lr = (cx - w // 2) // senstivity
-        print(f"ctr lr is {lr}")
+        print(f"oam lr is {lr}")
+        lr = int(np.clip(lr, -25, 25))
+        if lr < 2 and lr > -2:
+            lr = 0
+
+        #moving up and down
+        ud = ((cy+30) - h // 2) // senstivity #offset the ud because the camera is abit pointing down
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -25, 25))
+        if ud < 2 and ud > -2:
+            ud = 0
+
+        tello.send_rc_control(lr, 20, -ud, 0)
+
+    # after moving past circle, stop
+    tello.send_rc_control(0, 0, 0, 0)
+    center_still(tello)
+    tello.move_down(20)
+    tello.move_forward(120)
+  
+
+
+def skip_red_object(tello):
+    """ handles operation of skipping object """
+    print("sub mission skipping object launched...")
+
+    global senstivity
+
+    area = 0
+
+    while True: # as long as the area is still big,we haven't moved past the circle
+
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+
+        if area > tri_cir_area_thres*4: # close enough to the circle
+            break
+        
+        # getting another frame
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(img, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation        
+
+        # turning left and right
+        lr = (cx - w // 2) // senstivity
+        print(f"oam lr is {lr}")
         lr = int(np.clip(lr, -25, 25))
         if lr < 2 and lr > -2:
             lr = 0
         
-        # moving up and down
-        # if not lock_ud:
-        # ud = (cy - h // 2) // senstivity
-        # print(f"ctr ud is {ud}")
-        # ud = int(np.clip(ud, -25, 25))
-        # if ud < 2 and ud > -2:
-        #     ud = 0
-
-        tello.send_rc_control(lr, 0, ud, 0) #Notice left right is the first item in the array
-
-     
-def put_object_in_center(tello, cx, cy):
-    # pid_center_object(tello,cx,cy,minError=2)
-
-    global senstivity
-
-    tello.send_rc_control(0, 0, 0, 0)   #stop movement 
-
-    lock_ud = False
-    lock_lr = False
-
-    while True:
-
-        ud = 0
-        lr = 0
-        # turning left and right
-        #if not lock_lr:
-        lr = (cx - w // 2) // senstivity
-        print(f"oam lr is {lr}")
-        lr = int(np.clip(lr, -25, 25))
-        if lr < 5 and lr > -5:
-            lr = 0
-            lock_lr = True
-        
-        # moving up and down
-        # if not lock_ud:
-        # ud = (cy - h // 2) // senstivity
-        # print(f"oam ud is {ud}")
-        # ud = int(np.clip(ud, -25, 25))
-        if ud < 5 and ud > -5:
+        #moving up and down
+        ud = ((cy+30) - h // 2) // senstivity #offset the ud because the camera is abit pointing down
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -25, 25))
+        if ud < 2 and ud > -2:
             ud = 0
-            lock_ud = True
 
-        if lock_lr and lock_ud: #object centered
-            tello.send_rc_control(0, 0, 0, 0)
-            break
+        tello.send_rc_control(lr, 20, -ud, 0)
 
-        tello.send_rc_control(lr, 0, ud, 0) #Notice left right is the first item in the array
+    # after moving past circle, stop
+    tello.send_rc_control(0, 0, 0, 0)
+    center_still(tello)
+
+    before_height = tello.get_height()
+    count_steps = 0
+    while area > tri_cir_area_thres*4:  # up while going forward
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+        tello.move_up(20) # move up until can't see object
+        count_steps += 1
 
         # getting another frame
         img = tello.get_frame_read().frame
@@ -320,64 +286,17 @@ def put_object_in_center(tello, cx, cy):
 
         imgThres = thresRed(img)  # color image thresholding
 
-        # track center
+        # avoid obstacles
         cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
-def pid_center_object(drone,cx,cy,minError=2):
-    global printElapsed,w,h
-    pidSpeed,pidUd = ([0.4, 0.4, 0],[0.4, 0.4, 0])
-    pErrorSpeed, pErrorUd,minError=[0,0,5]
-    printElapsed=0
-    debug=False
-    while (True):
-        x,y=[cx,cy]
-        errorSpeed = x - w // 2
-        errorUd = y - h // 2
-        speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
-        speed = int(np.clip(speed, -20, 20))
-        ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
-        ud = int(np.clip(ud, -20, 20))
+    after_height = tello.get_height()
 
-        #Todo: evaluate when to move forward
-        if x <= minError:
-            speed = 0
-            fb=0#test positive val from evaluation func
-            ud=0
-            errorUd = 0
-            errorSpeed = 0
-            break
-        if time.time()-printElapsed <= 0.1:
-            print(f'up/down: {-ud}%, left/right: {speed}%')
-            printElapsed=time.time()
-        if not debug:
-            drone.send_rc_control(speed, 0, ud, 0)
-  
-        img = tello.get_frame_read().frame
+    tello.move_forward(130) #move forward abit
 
-        img = cv2.resize(img, (w, h)) #resize image
-
-        imgThres = thresRed(img)  # color image thresholding
-
-        # track center
-        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+    tello.move_down(count_steps*20) # go back to previous height
 
 
-avoided_shapes = { #shapes that have been avoided
-    "rectangle": False,
-    "circle": False,
-    "triangle": False
-} 
-
-imgCount = 0 #image count
-
-
-ob_ratio_thre = 0.3 #threshold for shapes
-
-circle_area_thres = 10000
-
-rect_area_thres = 70000
-
-def avoidObstacles(tello,frame):
+def avoidObstacles(tello):
 
     """
         obstacle avoidance, should be called after calling
@@ -386,80 +305,142 @@ def avoidObstacles(tello,frame):
 
     global imgCount
 
-    print(f"avoided shapes {avoided_shapes}")
+    # getting another frame
+    img = tello.get_frame_read().frame
 
-    img = cv2.resize(frame, (w, h)) #resize image
+    img = cv2.resize(img, (w, h)) #resize image
 
     imgThres = thresRed(img)  # color image thresholding
 
     # avoid obstacles
     cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
 
-    center_to_red(tello, cx, cy)
-
     shape = obstacle_shapes["none"] #get type of shape
-    is_avoided = False #avoidance state
+
 
     #check if any red obstacle was detected
     if white_to_black_ratio == -1:  # no red obstacle
-        return shape, is_avoided    # if no red obstacle return from here
-    elif (white_to_black_ratio >= ob_ratio_thre) and (area>=circle_area_thres):  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
+        return shape    # if no red obstacle return from here
+    elif (white_to_black_ratio >= ob_ratio_thres) and (area>=tri_cir_area_thres):  # circle or triangle, 0.5 to be on a safe side ie seeing only part of the shape
         if not avoided_shapes["rectangle"] and not avoided_shapes["circle"]  and not avoided_shapes["triangle"]:
             # this is a cirle
-            go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy, area)
+            go_through_circle(tello) 
 
              # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
-            is_avoided = True #avoidance state
+            
             avoided_shapes["circle"] = True
 
         elif avoided_shapes["rectangle"]  and not avoided_shapes["circle"] and not avoided_shapes["triangle"]:
             # this is a cirle
-            go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy, area)
+            go_through_circle(tello)
 
             # by this time, we assume we have moved passed the circle
             shape = obstacle_shapes["circle"] #get trype of shape
-            is_avoided = True #avoidance state
+            
             avoided_shapes["circle"] = True
 
         else:
             #center drone to object
-            put_object_in_center(tello, cx, cy)
+            center_towards_red(tello, tri_cir_area_thres)
 
-            # this is a triangle
-            tello.move_up(50)
-            tello.move_forward(200)
-            tello.move_down(50)
+            # this is a triangle, skip it
+            skip_red_object(tello)
 
              # by this time, we assume we have moved passed the triangle
             shape = obstacle_shapes["triangle"] #get trype of shape
-            is_avoided = True #avoidance state
+            
             avoided_shapes["triangle"] = True
 
-    elif (white_to_black_ratio < ob_ratio_thre) and (area>=rect_area_thres):  # rectangle detected, avoid it from the left side
+    elif (white_to_black_ratio < ob_ratio_thres) and (area >= tri_cir_area_thres):  # rectangle detected, avoid it from the left side
 
         #center drone to object
-        put_object_in_center(tello, cx, cy)
+        center_towards_red(tello, rec_area_thres)
 
-        #avoid object 
-        tello.move_up(50)
-        tello.move_forward(200)
-        tello.move_down(50)
+        #ski rectangle 
+        skip_red_object(tello)
 
         # by this time, we assume we have moved passed the rectangle
         shape = obstacle_shapes["rectangle"] #get trype of shape
-        is_avoided = True #avoidance state
+        
         avoided_shapes["rectangle"] = True
-
 
     # visualize progress
     print(f"count in oam is {imgCount}")
     cv2.imwrite("./image_feed/obstacle/" + str(imgCount) + ".jpg", img)
     imgCount = imgCount + 1
-    cv2.imshow("Thres", imgThres)
-    cv2.imshow("img", img)
 
-    return shape, is_avoided
+    print(f"avoided shapes {avoided_shapes}")
+
+    return shape
+
+
+
+def center_towards_red(tello, min_thres_area):
+    """
+    center while moving towards red, until minimum threshold area
+    """
+
+    global senstivity
+
+    area = min_thres_area
+
+    while area <= min_thres_area and area > 1000:
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+
+        # getting another frame
+        img = tello.get_frame_read().frame
+
+        img = cv2.resize(img, (w, h)) #resize image
+
+        imgThres = thresRed(img)  # color image thresholding
+
+        # track center
+        cx,  cy, area, white_to_black_ratio = getContours(imgThres, img)  # image translation
+    
+        #moving up and down
+        ud = ((cy+30) - h // 2) // senstivity
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -25, 25))
+        if ud < 2 and ud > -2:
+            ud = 0
+
+
+        # turning left and right
+        lr = (cx - w // 2) // senstivity
+        print(f"ctr lr is {lr}")
+        lr = int(np.clip(lr, -25, 25))
+        if lr < 2 and lr > -2:
+            lr = 0
+
+        tello.send_rc_control(lr, forward_speed, -ud, 0)
+        print(f"center_towards_red--->ud: {ud}, lr: {lr}, cx: {cx}, cy: {cy}, area: {area}, white_to_black_ratio: {white_to_black_ratio}")
+
+    tello.send_rc_control(0, 0, 0, 0) 
+     
+
+def find_and_avoid(tello):
+    """
+        finding objects, and then calling avoiding function
+    """
+    print("obstacle avoidance launched...")
+    
+    while True: 
+
+        if kp.getKey("q"):  # Allow press 'q' to land in case of emergency
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+ 
+        center_towards_red(tello,tri_cir_area_thres) # center while moving towards red, until minimum threshold area
+        shape = avoidObstacles(tello) # take action on object
+
+        if avoided_shapes["triangle"]:
+            print("reached end of mission")
+            tello.send_rc_control(0, 0, 0, 0)   #stop drone
+            tello.land()
+            break
 
 
 def deinit():
@@ -472,21 +453,17 @@ def deinit():
 if __name__ == "__main__":
     kp.init()  # initialize pygame keypress module
 
-    tello = tello.Tello()
+    tello = tello.Tello() # initialize tello 
     tello.connect()
-    time.sleep(1)
 
-    #tello.streamon_front()
-    tello.streamon()
-    time.sleep(3)
+    tello.streamon()  #start video stream
+    img = tello.get_frame_read().frame # test get an image frame before takeoff
+    cv2.imshow("initial frame", img)
 
     print("battery level is {}!".format(tello.get_battery()))
 
-    tello.send_rc_control(0, 0, 0, 0)
+    tello.takeoff() # drone take off
 
-    tello.takeoff()
-    time.sleep(3)
-
-    init(tello)  
-    _avoidObstacles(tello)
-    deinit()
+    init(tello)  # mission initialization
+    find_and_avoid(tello) #
+    deinit() # mission deinitialization
