@@ -201,15 +201,15 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
         if lr < 2 and lr > -2:
             lr = 0
         
-        # moving up and down
-        # ud = (cy - (h) // 2) // senstivity
-        # print(f"oam ud is {ud}")
-        # ud = int(np.clip(ud, -25, 25))
-        # if ud < 2 and ud > -2:
-        #     ud = 0
+        moving up and down
+        ud = (cy - (h) // 2) // senstivity
+        print(f"oam ud is {ud}")
+        ud = int(np.clip(ud, -25, 25))
+        if ud < 2 and ud > -2:
+            ud = 0
 
         # move to center of circle
-        tello.send_rc_control(lr, 15, ud, 0)
+        tello.send_rc_control(0, 15, ud, lr)
 
         # getting another frame
         img = tello.get_frame_read().frame
@@ -368,7 +368,7 @@ def avoidObstacles(tello,frame):
 
     center_to_red(tello, cx, cy)
 
-    shape = obstacle_shapes["none"] #get trype of shape
+    shape = obstacle_shapes["none"] #get type of shape
     is_avoided = False #avoidance state
 
     #check if any red obstacle was detected
