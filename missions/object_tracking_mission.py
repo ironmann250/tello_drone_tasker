@@ -10,17 +10,20 @@ import keyPressModule as kp
 
  #### debug vals ###
 debug=False
-testTime=60
+testTime=3600
 
 
 ### video & control vals ###
+
 startHeight,Herror=[80,2]
+
 waittime=0.5
 change=0
 timeWaited=0
 multiplier=1
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
+
 fbRange = [10000*(multiplier*multiplier),30000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
@@ -50,17 +53,20 @@ def init(tello):
     print("object tracking initializing...")
     if not debug:
         
-        nostream=False
-        if nostream:
-            try:
-                myFrame = tello.get_frame_read().frame
-                myFrame=cv2.resize(myFrame,320,320)
-                nostream=False
-            except:
-                pass
-            
+        nostream=True
+        # while nostream:
+        #     try:
+        #         myFrame = tello.get_frame_read().frame
+        #         myFrame=cv2.resize(myFrame,320,320)
+        #     except:
+        #         continue
+        #     nostream=False
+    
+        myFrame = tello.get_frame_read().frame
+        #myFrame=cv2.resize(myFrame,320,320)
         
         tello.takeoff()
+        
 
         
         #go to starting height within error Herror
@@ -115,6 +121,7 @@ def getContours(img,imgContour):
         i = myObjectListArea.index(max(myObjectListArea))
         cv2.circle(imgContour, myObjectListC[i], 5, (0, 255, 0), cv2.FILLED)
         x,y,w,h,approx=myObjectListData[i]
+        print(myObjectListArea[i])
         cv2.rectangle(imgContour, (x , y ), (x + w , y + h ), (0, 255, 0), 5)
 
         cv2.putText(imgContour, "Points: " + str(len(approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
@@ -234,7 +241,8 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     return [errorSpeed,errorUd]
 
 def isEndMission(img,now):
-
+    global endTargetCount,endTargetLimits
+    return False
     if (time.time()-now)>=waittime:
         return True
 
@@ -277,6 +285,7 @@ def trackObject(tello):
         imgHsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
         
         mask = cv2.inRange(imgHsv,lower,upper)
+
         result = cv2.bitwise_and(img,img, mask = mask)
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
@@ -293,6 +302,7 @@ def trackObject(tello):
         #if isEndMission(img,now):
         #    tello.land()
         #    break
+
         #print("Area", info[1], "Center", info[1])
         cv2.imshow("output", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -319,7 +329,9 @@ if __name__ == "__main__":
         tello.connect()
         time.sleep(1)
 
+
         tello.streamon()
+
         time.sleep(1)
         
         print("battery level is {}".format(tello.get_battery()))

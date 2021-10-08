@@ -4,27 +4,27 @@ import numpy as np
  
 
  
-# CONNECT TO TELLO
-# me = Tello()
-# me.connect()
-# me.for_back_velocity = 0
-# me.left_right_velocity = 0
-# me.up_down_velocity = 0
-# me.yaw_velocity = 0
-# me.speed = 0
+ #CONNECT TO TELLO
+me = Tello()
+me.connect()
+me.for_back_velocity = 0
+me.left_right_velocity = 0
+me.up_down_velocity = 0
+me.yaw_velocity = 0
+me.speed = 0
  
  
  
-# print(me.get_battery())
+print(me.get_battery())
  
 
-# me.streamon()
+me.streamon()
  
-frameWidth = 640
-frameHeight = 480
-cap = cv2.VideoCapture(0)
-cap.set(3, frameWidth)
-cap.set(4, frameHeight)
+frameWidth = 360
+frameHeight = 240
+# cap = cv2.VideoCapture(0)
+# cap.set(3, frameWidth)
+# cap.set(4, frameHeight)
 
  
 deadZone=100
@@ -131,8 +131,8 @@ def display(img):
  
 while True:
  
-    _, img = cap.read()
-    #img = cv2.resize(me.get_frame_read().frame, (frameWidth, frameHeight))
+    #_, img = cap.read()
+    img = cv2.resize(me.get_frame_read().frame, (frameWidth, frameHeight))
     imgContour = img.copy()
     imgHsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
  
