@@ -30,7 +30,7 @@ obstacle_shapes = {
 
 shape_area_thres = 50000 # 200000 thres for the real objects area
 
-g_flight_height = 140 # height o find objects to avoid
+g_flight_height = 120 # height o find objects to avoid
 
 senstivity = 2
 
@@ -177,6 +177,7 @@ def _avoidObstacles(tello,cap=None):
                 print("reached end of mission")
                 tello.send_rc_control(0, 0, 0, 0)   #moving forward
                 tello.land()
+                break
 
         else:
             print("waiting stream...")
