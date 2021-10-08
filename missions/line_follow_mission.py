@@ -337,7 +337,7 @@ if __name__ == '__main__':
         tello.connect()
         time.sleep(1)
         if FRONTCAM:
-            tello.streamon_front()
+            tello.streamon()
         else:
             tello.streamon_bottom()
 

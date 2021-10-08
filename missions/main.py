@@ -16,32 +16,26 @@ import obstacle_avoidance_mission as am
 
 def init():
     kp.init()  # initialize pygame keypress module
-    # cv2.imshow("output", np.zeros(shape=[360, 240, 3], dtype=np.uint8))  # create cv2 window
-    time.sleep(3)
 
-    # initialize me drone
-    me = tello.Tello()
-    me.connect()
-    print("battery level is {}".format(me.get_battery()))
+    tello = tello.Tello() # initialize tello 
+    tello.connect()
 
-    # start stream
-    me.streamon_front()
+    tello.streamon()  #start video stream
 
-    # get and show test frame from drone
-    img = me.get_frame_read().frame
-    cv2.imshow("output", img)
+    print(f"reading first video frame...")
+    img = tello.get_frame_read().frame # test get an image frame before takeoff
+    cv2.imshow("initial frame", img)
+    print(f"read first video frame!")
 
-    # take off
-    me.send_rc_control(0, 0, 0, 0)
-    me.takeoff()
+    print("battery level is {}!".format(tello.get_battery()))
 
-    time.sleep(2)
+    tello.takeoff() # drone take off
+
     height = me.get_height()
     print(f"height after take off {height}")
-    #if height < 60:  # error in height, typically 80cm after take off
-        #raise Exception(f'drone returned wrong height after take off: {height}')
 
-    return me
+
+    return tello
 
 
 if __name__ == '__main__':
@@ -62,7 +56,7 @@ if __name__ == '__main__':
             Execute obstacle avoidance mission
             """
             am.init(me)  # init obstacle avoidance mission
-            am.avoidObstacles(me)  # start obstacle avoidance
+            am.find_and_avoid(me)  # start obstacle avoidance
             am.deinit()  # deinitialize obstacle avoidance mission
         elif mission == "object_tracking":
             """
