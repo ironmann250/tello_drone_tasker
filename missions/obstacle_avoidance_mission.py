@@ -342,7 +342,7 @@ avoided_shapes = { #shapes that have been avoided
 imgCount = 0 #image count
 
 
-ob_ratio_thre = 0.35 #threshold for shapes
+ob_ratio_thre = 0.3 #threshold for shapes
 
 circle_area_thres = 10000
 
@@ -399,7 +399,7 @@ def avoidObstacles(tello,frame):
 
             # this is a triangle
             tello.move_up(50)
-            tello.move_forward(150)
+            tello.move_forward(200)
             tello.move_down(50)
 
              # by this time, we assume we have moved passed the triangle
@@ -414,7 +414,7 @@ def avoidObstacles(tello,frame):
 
         #avoid object 
         tello.move_up(50)
-        tello.move_forward(150)
+        tello.move_forward(200)
         tello.move_down(50)
 
         # by this time, we assume we have moved passed the rectangle
