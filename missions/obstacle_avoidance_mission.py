@@ -201,7 +201,7 @@ def go_through_circle(tello, imgThres, white_to_black_ratio, cx, cy):
         if lr < 2 and lr > -2:
             lr = 0
         
-        moving up and down
+        #moving up and down
         ud = (cy - (h) // 2) // senstivity
         print(f"oam ud is {ud}")
         ud = int(np.clip(ud, -25, 25))
@@ -447,7 +447,8 @@ if __name__ == "__main__":
     tello.connect()
     time.sleep(1)
 
-    tello.streamon_front()
+    #tello.streamon_front()
+    tello.streamon()
     time.sleep(3)
 
     print("battery level is {}!".format(tello.get_battery()))

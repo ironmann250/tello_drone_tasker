@@ -217,6 +217,14 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
         fb = -20
     elif area < fbRange[0] and area > 0:
         fb = 20   
+    #maintain height
+    if abs(tello.get_height()-startHeight)>Herror:
+        if tello.get_height() > startHeight:
+            ud=-20
+        else:
+            ud=20
+    else:
+        ud=0
 
     if x == 0:
         timeWaited=time.time()-change
@@ -236,7 +244,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     cv2.putText(imgContour, "err LR: "+str(errorSpeed)+" err UD: "+str(x)+" tm wtd: "+str(timeWaited),( 5, 220), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1.2,(0, 0, 255), 2)
     #time.sleep(0.5)
     if not debug:
-        me.send_rc_control(0, fb, 0, speed)
+        me.send_rc_control(0, fb, ud, speed)
         #pass
     return [errorSpeed,errorUd]
 
