@@ -210,7 +210,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
     ud = int(np.clip(ud, -20, 20))
     
-    if area > fbRange[0] and area < fbRange[1]:
+    if area > fbRange[0] and area < fbRange[1]: 
         fb = 0
 
     if area > fbRange[1]:

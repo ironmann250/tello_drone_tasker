@@ -157,7 +157,7 @@ while True:
     threshold2 = cv2.getTrackbarPos("Threshold2", "Parameters")
     imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
     kernel = np.ones((5, 5))
-    imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
+    imgDil = cv2.erode(imgCanny, kernel, iterations=1)
     getContours(imgDil, imgContour)
     display(imgContour)
  
