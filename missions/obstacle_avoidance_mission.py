@@ -31,7 +31,7 @@ avoided_shapes = { #shapes that have been avoided
 
 g_flight_height = 120 # height o find objects to avoid
 
-senstivity = 2 # sensitivity of change in direction
+senstivity = 3 # sensitivity of change in direction
 
 forward_speed = 20 # forward speed
 approach_speed = 20 # speed to approach mission flight height
@@ -219,7 +219,7 @@ def go_through_circle(tello):
     tello.send_rc_control(0, 0, 0, 0)
     center_still(tello)
     tello.move_down(20)
-    tello.move_forward(120)
+    tello.move_forward(130)
   
 
 
@@ -291,7 +291,7 @@ def skip_red_object(tello):
 
     after_height = tello.get_height()
 
-    tello.move_forward(130) #move forward abit
+    tello.move_forward(140) #move forward abit
 
     tello.move_down(count_steps*20) # go back to previous height
 
