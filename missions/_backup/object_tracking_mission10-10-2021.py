@@ -24,17 +24,13 @@ multiplier=1
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
 
-fbRange = [15000*(multiplier*multiplier),30000*(multiplier*multiplier)]#[6200, 6800]
-speedupRange = [2000,10000]
-front_speed=30
-speedup_vel=50
+fbRange = [10000*(multiplier*multiplier),30000*(multiplier*multiplier)]#[6200, 6800]
 pidSpeed = [0.4, 0.4, 0]
 pErrorSpeed = 0
 pidUd = [0.4, 0.4, 0]
 pErrorUd = 0
 endTargetCount=0
 endTargetLimits=10
-
 
 ### color thresholding ###
 #lower = np.array([137,80,180])#h_min,s_min,v_min
@@ -74,23 +70,16 @@ def init(tello):
 
         
         #go to starting height within error Herror
-        # while(abs(tello.get_height()-startHeight)>Herror):
-        #     print (tello.get_height())
-        #     if kp.getKey("q"):  # Allow press 'q' to land in case of etellorgency
-        #         tello.land()
-        #         break
-        #     if tello.get_height() > startHeight:
-        #         tello.send_rc_control(0, 0, -20, 0)
-        #     else:
-        #         tello.send_rc_control(0 , 0, 20, 0)
-        #     tello.send_rc_control(0 , 0, 0, 0)
-        diff=startHeight-tello.get_height()
-        if (diff) > 0:
-            go_to_height_v = 20
-            #tello.move_up(diff)
-        else:
-            go_to_height_v = -20
-            #tello.move_down(-diff)
+        while(abs(tello.get_height()-startHeight)>Herror):
+            print (tello.get_height())
+            if kp.getKey("q"):  # Allow press 'q' to land in case of etellorgency
+                tello.land()
+                break
+            if tello.get_height() > startHeight:
+                tello.send_rc_control(0, 0, -20, 0)
+            else:
+                tello.send_rc_control(0 , 0, 20, 0)
+            tello.send_rc_control(0 , 0, 0, 0)
         print("Reached tracking height of: {} cm".format(tello.get_height()))        
 
 def get_mask(img,imgHsv,lower,upper): #
@@ -114,7 +103,7 @@ def getContours(img,imgContour):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        areaMin =1000# cv2.getTrackbarPos("Area", "Parameters")
+        areaMin =200# cv2.getTrackbarPos("Area", "Parameters")
         if area > areaMin:
             cv2.drawContours(imgContour, cnt, -1, (255, 0, 255), 7)
             peri = cv2.arcLength(cnt, True)
@@ -213,7 +202,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     area = info[1]
     x, y = info[0]
     fb = 0
-    curr_speed=front_speed
+
     errorSpeed = x - w // 2
     errorUd = y - h // 2
     speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
@@ -221,22 +210,13 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
     ud = int(np.clip(ud, -20, 20))
     
-    #if in speeduprange speedup forward speed
-    if area <= speedupRange[1]:
-        if area >= speedupRange[0]:
-            curr_speed=speedup_vel
-    '''    elif area >= speedupRange[0] and area <= speedupRange[1]:
-        curr_speed=speedup_vel
-    else:
-        curr_speed=front_speed
-    '''
-    #calc front speed
     if area > fbRange[0] and area < fbRange[1]: 
         fb = 0
+
     if area > fbRange[1]:
-        fb = -curr_speed
+        fb = -30
     elif area < fbRange[0] and area > 0:
-        fb = curr_speed 
+        fb = 30 
     #maintain height
     if abs(tello.get_height()-startHeight)>Herror:
         if tello.get_height() > startHeight:

@@ -298,7 +298,7 @@ def followLine(tello, cap=None):
             sendCommands(tello, senOut, cx)           
 
             # visualize progress
-            # cv2.imshow("output", img)
+            cv2.imshow("output", img)
             print(f"count is {imgCount}")
             cv2.imwrite("./image_feed/follow/" + str(imgCount) + ".jpg", img)
             cv2.imwrite("./image_feed/big/" + str(imgCount) + ".jpg", big_img)
