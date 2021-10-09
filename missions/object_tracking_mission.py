@@ -87,10 +87,10 @@ def init(tello):
         diff=startHeight-tello.get_height()
         if (diff) > 0:
             go_to_height_v = 20
-            #tello.move_up(diff)
+            tello.move_up(diff)
         else:
             go_to_height_v = -20
-            #tello.move_down(-diff)
+            tello.move_down(-diff)
         print("Reached tracking height of: {} cm".format(tello.get_height()))        
 
 def get_mask(img,imgHsv,lower,upper): #
