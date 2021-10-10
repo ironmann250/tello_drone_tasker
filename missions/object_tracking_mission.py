@@ -20,7 +20,7 @@ startHeight,Herror=[110,2]
 waittime=0.5
 change=0
 timeWaited=0
-multiplier=1
+multiplier=2
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
 
@@ -69,7 +69,7 @@ def init(tello):
         myFrame = tello.get_frame_read().frame
         #myFrame=cv2.resize(myFrame,320,320)
         
-        tello.takeoff()
+        #tello.takeoff()
         
 
         
@@ -87,10 +87,10 @@ def init(tello):
         diff=startHeight-tello.get_height()
         if (diff) > 0:
             go_to_height_v = 20
-            tello.move_up(diff)
+            #tello.move_up(diff)
         else:
             go_to_height_v = -20
-            tello.move_down(-diff)
+            #tello.move_down(-diff)
         print("Reached tracking height of: {} cm".format(tello.get_height()))        
 
 def get_mask(img,imgHsv,lower,upper): #
@@ -216,20 +216,18 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     curr_speed=front_speed
     errorSpeed = x - w // 2
     errorUd = y - h // 2
+
     speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
     speed = int(np.clip(speed, -100, 100))
+
     ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
     ud = int(np.clip(ud, -20, 20))
-    
+
     #if in speeduprange speedup forward speed
     if area <= speedupRange[1]:
         if area >= speedupRange[0]:
             curr_speed=speedup_vel
-    '''    elif area >= speedupRange[0] and area <= speedupRange[1]:
-        curr_speed=speedup_vel
-    else:
-        curr_speed=front_speed
-    '''
+            
     #calc front speed
     if area > fbRange[0] and area < fbRange[1]: 
         fb = 0

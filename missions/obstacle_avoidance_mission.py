@@ -219,8 +219,7 @@ def go_through_circle(tello):
     tello.send_rc_control(0, 0, 0, 0)
     center_still(tello)
     tello.move_down(20)
-    tello.send_rc_control(10, 0, 0, 0)
-    time.sleep(0.5)
+    tello.move_right(20)
     tello.send_rc_control(0, 0, 0, 0)
     tello.move_forward(130)
   
