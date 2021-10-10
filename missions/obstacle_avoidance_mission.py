@@ -37,7 +37,7 @@ forward_speed = 20 # forward speed
 approach_speed = 20 # speed to approach mission flight height
 
 # threshold values
-tri_cir_area_thres = 10000
+tri_cir_area_thres = 13000
 rec_area_thres = 70000
 ob_ratio_thres = 0.3 #threshold for shapes
 
@@ -219,6 +219,9 @@ def go_through_circle(tello):
     tello.send_rc_control(0, 0, 0, 0)
     center_still(tello)
     tello.move_down(20)
+    tello.send_rc_control(10, 0, 0, 0)
+    time.sleep(0.5)
+    tello.send_rc_control(0, 0, 0, 0)
     tello.move_forward(130)
   
 

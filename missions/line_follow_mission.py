@@ -22,7 +22,7 @@ else:
 
 # hsvVals = [20, 100, 100, 30, 255, 255] # base-line # yellow thres in hsv
 # hsvVals = [26, 61, 137, 255, 255, 255]  # test-ground # hsv range values for yellow line
-hsvVals = [25, 36, 172, 46, 255, 255]  # home-ground # hsv range values for yellow line
+hsvVals = [25, 36, 5, 45, 255, 255]  # home-ground # hsv range values for yellow line
 
 thres_vals = [181, 191, 188, 255, 255, 255]  # threshold range values for white line (black and white )
 

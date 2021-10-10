@@ -15,7 +15,7 @@ testTime=3600
 
 ### video & control vals ###
 
-startHeight,Herror=[100,2]
+startHeight,Herror=[110,2]
 
 waittime=0.5
 change=0
@@ -114,7 +114,7 @@ def getContours(img,imgContour):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        areaMin =1000# cv2.getTrackbarPos("Area", "Parameters")
+        areaMin =700# cv2.getTrackbarPos("Area", "Parameters")
         if area > areaMin:
             cv2.drawContours(imgContour, cnt, -1, (255, 0, 255), 7)
             peri = cv2.arcLength(cnt, True)
