@@ -9,5 +9,5 @@ The competition had three missions:
 ->Tunning and testing code is under the "scratch" and "tunning" folder
 ->The development code (indicating how we changed ideas over time) is under the "development" folder
 
-Credit: The code utilizes the djitellopy wrapper library found at (DJITelloPy)[https://github.com/damiafuentes/DJITelloPy]
+Credit: The code utilizes the djitellopy wrapper library found at [DJITelloPy](https://github.com/damiafuentes/DJITelloPy)
 
