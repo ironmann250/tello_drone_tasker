@@ -1,5 +1,5 @@
 # tello_drone_tasker
-### 2021 UESTC MBZIR automated Drone flying competition Code for tunning, testing and accomplishing of the competition missions. 
+### 2021 UESTC MBZIRC automated Drone flying competition Code for tunning, testing and accomplishing of the competition missions. 
 
 The competition had three missions:
 1. Line Following
