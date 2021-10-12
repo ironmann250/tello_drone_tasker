@@ -9,8 +9,8 @@ import time
 import keyPressModule as kp
 
  #### debug vals ###
-debug=False
-testTime=3600
+debug=False #debug mode, uses computer camera not the drone
+testTime=60 #auto shutdown drone after these seconds
 
 
 ### video & control vals ###
@@ -20,18 +20,19 @@ startHeight,Herror=[110,2]
 waittime=0.5
 change=0
 timeWaited=0
-multiplier=2
+multiplier=2 #increase the size of the output video
 w, h = [360*multiplier, 240*multiplier]
 frameWidth,frameHeight,deadZone=w,h,50
 
-fbRange = [15000*(multiplier*multiplier),30000*(multiplier*multiplier)]#[6200, 6800]
-speedupRange = [2000,10000]
-front_speed=30
-speedup_vel=50
-pidSpeed = [0.4, 0.4, 0]
+fbRange = [15000*(multiplier*multiplier),30000*(multiplier*multiplier)]#the range of areas at which to the drone stops
+speedupRange = [2000*(multiplier*multiplier),10000*(multiplier*multiplier)]#the range of areas at which the drone speed's up
+front_speed=30 #fnormal front speed
+speedup_vel=50 #speed when in speeduprange
+pidSpeed = [0.4, 0.4, 0]#yaw pid values
 pErrorSpeed = 0
-pidUd = [0.4, 0.4, 0]
+pidUd = [0.4, 0.4, 0]#up/down pid values (not used anymore )
 pErrorUd = 0
+#used in end of mission analysis (not used anymore)
 endTargetCount=0
 endTargetLimits=10
 
@@ -56,44 +57,22 @@ def init(tello):
     """
     print("object tracking initializing...")
     if not debug:
-        
-        nostream=True
-        # while nostream:
-        #     try:
-        #         myFrame = tello.get_frame_read().frame
-        #         myFrame=cv2.resize(myFrame,320,320)
-        #     except:
-        #         continue
-        #     nostream=False
-    
         myFrame = tello.get_frame_read().frame
-        #myFrame=cv2.resize(myFrame,320,320)
-        
-        #tello.takeoff()
+        tello.takeoff()
         
 
         
-        #go to starting height within error Herror
-        # while(abs(tello.get_height()-startHeight)>Herror):
-        #     print (tello.get_height())
-        #     if kp.getKey("q"):  # Allow press 'q' to land in case of etellorgency
-        #         tello.land()
-        #         break
-        #     if tello.get_height() > startHeight:
-        #         tello.send_rc_control(0, 0, -20, 0)
-        #     else:
-        #         tello.send_rc_control(0 , 0, 20, 0)
-        #     tello.send_rc_control(0 , 0, 0, 0)
+        #go to starting height
         diff=startHeight-tello.get_height()
         if (diff) > 0:
             go_to_height_v = 20
-            #tello.move_up(diff)
+            tello.move_up(diff)
         else:
             go_to_height_v = -20
-            #tello.move_down(-diff)
+            tello.move_down(-diff)
         print("Reached tracking height of: {} cm".format(tello.get_height()))        
 
-def get_mask(img,imgHsv,lower,upper): #
+def get_mask(img,imgHsv,lower,upper): #returns mask for given values
     mask = cv2.inRange(imgHsv,lower,upper)
     result = cv2.bitwise_and(img,img, mask = mask)
     mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR) 
@@ -108,6 +87,7 @@ def thresRed(img):
     return mask
 
 def getContours(img,imgContour):
+    '''gets contours and returns biggest area's center and area and adds texts to the output image'''
     myObjectListData = []
     myObjectListC = []
     myObjectListArea = []
@@ -165,6 +145,7 @@ def getContours(img,imgContour):
         return imgContour,[[0,0],0]
 
 def nonPIDtracking(me,info,w,h,imgContour):
+    #a tracking function that doesn't use PID (faster but doesn't adapt)
     global change,timeWaited,waitTime
 
     area = info[1]
@@ -209,17 +190,19 @@ def nonPIDtracking(me,info,w,h,imgContour):
     
 
 def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
+    '''tracking objects using errors in object centers and area also adjusting the height'''
     global change,timeWaited,waitTime
     area = info[1]
     x, y = info[0]
     fb = 0
     curr_speed=front_speed
+    #calculate centering errors
     errorSpeed = x - w // 2
     errorUd = y - h // 2
-
+    #calculate pid values for yaw
     speed = pidSpeed[0] * errorSpeed + pidSpeed[1] * (errorSpeed - pErrorSpeed)
     speed = int(np.clip(speed, -100, 100))
-
+    #calculate pid values for up/down (not used anymore)
     ud = pidUd[0] * errorUd + pidUd[1] * (errorUd - pErrorUd)
     ud = int(np.clip(ud, -20, 20))
 
@@ -227,7 +210,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     if area <= speedupRange[1]:
         if area >= speedupRange[0]:
             curr_speed=speedup_vel
-            
+
     #calc front speed
     if area > fbRange[0] and area < fbRange[1]: 
         fb = 0
@@ -243,7 +226,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
             ud=20
     else:
         ud=0
-
+    #if no object stop drone
     if x == 0:
         timeWaited=time.time()-change
         if True:#timeWaited>waitTime:
@@ -254,6 +237,7 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
             errorUd = 0
             errorSpeed = 0
     else:
+        #removed timing logic when object suddenly disappear
         change=time.time()
         timeWaited=0
 
@@ -263,10 +247,10 @@ def trackObj(me, info, w,h, pidSpeed, pErrorSpeed,pidUd, pErrorUd,imgContour):
     #time.sleep(0.5)
     if not debug:
         me.send_rc_control(0, fb, ud, speed)
-        #pass
     return [errorSpeed,errorUd]
 
 def isEndMission(img,now):
+    #not used since no sign
     global endTargetCount,endTargetLimits
     return False
     if (time.time()-now)>=waittime:
@@ -288,6 +272,7 @@ def trackObject(tello):
     """
         initializing the object tracking, should be called after calling
         init()
+        main loop that bridges everything together
     """
     print("object tracking launched...")
     
@@ -348,6 +333,7 @@ def deinit():
 pErrorSpeed = 0
 
 if __name__ == "__main__":
+    #this is run if not called as a module
     if not debug:
         kp.init()  # initialize pygatello keypress module
 
