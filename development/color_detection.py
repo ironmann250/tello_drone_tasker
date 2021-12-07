@@ -22,9 +22,9 @@ me.streamon()
  
 frameWidth = 360
 frameHeight = 240
-# cap = cv2.VideoCapture(0)
-# cap.set(3, frameWidth)
-# cap.set(4, frameHeight)
+#cap = cv2.VideoCapture(0)
+#cap.set(3, frameWidth)
+#cap.set(4, frameHeight)
 
  
 deadZone=100

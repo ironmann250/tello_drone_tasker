@@ -192,8 +192,10 @@ while True:
     #upper = np.array([179,255,255])#h_max,s_max,v_max
     #lower = np.array([89,154,83])#blue on drone h_min,s_min,v_min
     #upper = np.array([179,255,255])#blue on drone h_max,s_max,v_max
-    lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
-    upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
+    #lower = np.array([45, 95, 40])#green ball h_min,s_min,v_min
+    #upper = np.array([82, 240, 255])#green ball h_max,s_max,v_max
+    lower = np.array([155,96,46])#red ball
+    upper = np.array([179,255,255])#red ball
     #lower = np.array([36,156,48])#blue outdoors h_min,s_min,v_min
     #upper = np.array([133,255,255])#blue outdoors h_max,s_max,v_max
     
